@@ -1,0 +1,1931 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src data:; connect-src https://*.supabase.co wss://*.supabase.co; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title>BandMate</title>
+    
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232446d8'/%3E%3Cpath d='M7 11h18M7 16h18M7 21h18' stroke='white' stroke-width='2'/%3E%3C/svg%3E"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&family=IBM+Plex+Mono:wght@500&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      const CFG = {
+        url: "https://pjxdcffeldaukrpqecre.supabase.co",
+        key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqeGRjZmZlbGRhdWtycHFlY3JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQxOTk0MTksImV4cCI6MjEwOTc3NTQxOX0.1NUHQGYCa_CTOEOLTyFbuMxrp6ziiBiU1EJLVNeIuAA",
+      };
+
+      const configured = !CFG.url.startsWith("YOUR_");
+      const sb = configured ? supabase.createClient(CFG.url, CFG.key) : null;
+
+      /* ============ helpers (no innerHTML for user data: everything goes through h()) ============ */
+      const h = (t, a = {}, c = []) => {
+        const e = document.createElement(t);
+        for (const k in a) {
+          if (k.startsWith("on")) e.addEventListener(k.slice(2), a[k]);
+          else e.setAttribute(k, a[k]);
+        }
+        []
+          .concat(c)
+          .filter((x) => x !== false && x != null)
+          .forEach((x) =>
+            e.append(x instanceof Node ? x : document.createTextNode(x)),
+          );
+        return e;
+      };
+      const IC = {
+        practice: "M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z",
+        theory: "M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z",
+        tuner: "M12 14l5-5M4 18a9 9 0 1 1 16 0z",
+        voice:
+          "M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5 11a7 7 0 0 0 14 0M12 18v3",
+        chords: "M4 6h16M4 12h16M4 18h10",
+        metro: "M8 21l3-18h2l3 18zM12 17l5-8",
+        setlist:
+          "M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.5A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z",
+        songs: "M4 20h4L19 9l-4-4L4 16zM14 6l4 4",
+        profile: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
+      };
+      const ic = (n) => {
+        const s = h("span");
+        s.innerHTML =
+          '<svg viewBox="0 0 24 24"><path d="' + IC[n] + '"/></svg>';
+        return s.firstChild;
+      };
+      const toast = (m, bad) => {
+        const t = h(
+          "div",
+          { class: "toast" + (bad ? " bad" : ""), role: "status" },
+          m,
+        );
+        document.body.append(t);
+        setTimeout(() => t.remove(), 3200);
+      };
+      const S = {
+        u: null,
+        p: {},
+        prog: new Set(),
+        logs: [],
+        songs: [],
+        favs: new Set(),
+      };
+      let cleanup = () => {};
+      const field = (l, el) => h("div", {}, [h("label", {}, l), el]);
+      const opts = (arr, v) =>
+        arr.map((o) => {
+          const e = h("option", { value: o }, o);
+          if (o === v) e.selected = true;
+          return e;
+        });
+
+      /* ============ AUTH ============ */
+      function authView() {
+        let mode = "login",
+          fails = 0,
+          lock = 0;
+        const right = h("section"),
+          root = document.getElementById("root");
+        const draw = () => {
+          const em = h("input", {
+            type: "email",
+            autocomplete: "email",
+            maxlength: "120",
+          });
+          const pw = h("input", {
+            type: "password",
+            autocomplete:
+              mode === "login" ? "current-password" : "new-password",
+            maxlength: "72",
+          });
+          const nm = h("input", {
+            type: "text",
+            autocomplete: "name",
+            maxlength: "40",
+          });
+          const msg = h("p", { class: "msg", role: "alert" });
+          const go = h(
+            "button",
+            {
+              class: "btn",
+              type: "submit",
+              style: "width:100%;margin-top:1rem",
+            },
+            mode === "login" ? "Log in" : "Create account",
+          );
+          const f = h(
+            "form",
+            {
+              novalidate: "",
+              onsubmit: async (e) => {
+                e.preventDefault();
+                msg.className = "msg";
+                msg.textContent = "";
+                if (!configured)
+                  return (msg.textContent =
+                    "Backend not connected. Add your Supabase URL and anon key at the top of the script.");
+                const E = em.value.trim().toLowerCase();
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(E))
+                  return (msg.textContent = "Enter a valid email address.");
+                if (Date.now() < lock)
+                  return (msg.textContent =
+                    "Too many attempts. Wait 30 seconds and try again.");
+                if (mode === "signup" && !nm.value.trim())
+                  return (msg.textContent = "Enter your display name.");
+                if (mode === "signup" && pw.value.length < 10)
+                  return (msg.textContent =
+                    "Use a password of at least 10 characters.");
+                if (!pw.value)
+                  return (msg.textContent = "Enter your password.");
+                go.disabled = true;
+                const r =
+                  mode === "login"
+                    ? await sb.auth.signInWithPassword({
+                        email: E,
+                        password: pw.value,
+                      })
+                    : await sb.auth.signUp({
+                        email: E,
+                        password: pw.value,
+                        options: {
+                          data: { display_name: nm.value.trim().slice(0, 40) },
+                        },
+                      });
+                go.disabled = false;
+                go.disabled = false;
+                if (r.error) {
+                  console.error(r.error);
+                  if (++fails >= 5) {
+                    lock = Date.now() + 30000;
+                    fails = 0;
+                  }
+                  return (msg.textContent =
+                    mode === "login"
+                      ? "Incorrect email or password."
+                      : "Sign up failed: " + r.error.message);
+                }
+                if (mode === "signup" && !r.data.session) {
+                }
+                if (mode === "signup" && !r.data.session) {
+                  msg.className = "msg ok";
+                  msg.textContent =
+                    "Account created. Confirm your email, then log in.";
+                }
+              },
+            },
+            [
+              mode === "signup" && field("Display name", nm),
+              field("Email", em),
+              field("Password", pw),
+              go,
+              msg,
+              mode === "login" &&
+                h(
+                  "button",
+                  {
+                    class: "link",
+                    type: "button",
+                    onclick: async () => {
+                      const E = em.value.trim().toLowerCase();
+                      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(E))
+                        return (msg.textContent = "Enter your email first.");
+                      if (configured)
+                        await sb.auth.resetPasswordForEmail(E, {
+                          redirectTo: location.origin + location.pathname,
+                        });
+                      msg.className = "msg ok";
+                      msg.textContent =
+                        "If that email has an account, a reset link is on its way.";
+                    },
+                  },
+                  "Forgot password?",
+                ),
+            ],
+          );
+          right.replaceChildren(
+            h("div", { style: "width:100%;max-width:360px" }, [
+              h(
+                "div",
+                { class: "tabs", role: "tablist" },
+                [
+                  ["login", "Log in"],
+                  ["signup", "Sign up"],
+                ].map(([m, l]) =>
+                  h(
+                    "button",
+                    {
+                      role: "tab",
+                      class: mode === m ? "on" : "",
+                      onclick: () => {
+                        mode = m;
+                        draw();
+                      },
+                    },
+                    l,
+                  ),
+                ),
+              ),
+              f,
+            ]),
+          );
+        };
+        draw();
+        root.replaceChildren(
+          h("div", { class: "auth" }, [
+            h("aside", {}, [
+              h("h2", {}, "Learn, tune and play in one place."),
+              h(
+                "p",
+                {},
+                "Theory lessons, a pitch-accurate tuner, chord sheets and a practice log that follows you across devices.",
+              ),
+            ]),
+            right,
+          ]),
+        );
+      }
+
+      /* ============ SHELL ============ */
+      const VIEWS = {
+        practice: ["Practice", practiceView],
+        theory: ["Theory", theoryView],
+        tuner: ["Tuner", tunerView],
+        voice: ["Voice trainer", voiceView],
+        chords: ["Chords", chordsView],
+        metro: ["Metronome", metroView],
+        setlist: ["Setlist", setlistView],
+        songs: ["Add Songs", songsView],
+        profile: ["Profile", profileView],
+      };
+      function shell() {
+        const main = h("main"),
+          nav = h("nav", {}, h("div", { class: "brand" }, "BandMate"));
+        const go = (k) => {
+          cleanup();
+          cleanup = () => {};
+          nav
+            .querySelectorAll("a")
+            .forEach((a) => a.classList.toggle("on", a.dataset.k === k));
+          main.replaceChildren(VIEWS[k][1]());
+          scrollTo(0, 0);
+        };
+        for (const k in VIEWS)
+          nav.append(
+            h(
+              "a",
+              {
+                "data-k": k,
+                href: "#",
+                onclick: (e) => {
+                  e.preventDefault();
+                  go(k);
+                },
+              },
+              [ic(k), VIEWS[k][0]],
+            ),
+          );
+        document
+          .getElementById("root")
+          .replaceChildren(h("div", { class: "app" }, [nav, main]));
+        shell.go = go;
+        go("practice");
+      }
+      const page = (t, s, ...c) =>
+        h("div", {}, [
+          h("h1", {}, t),
+          s && h("p", { class: "sub" }, s),
+          h("div", { class: "stave" }),
+          ...c,
+        ]);
+
+      /* ============ DATA ============ */
+      async function load() {
+        const u = S.u.id;
+        const [p, l, g, so, f] = await Promise.all([
+          sb.from("profiles").select("*").eq("id", u).maybeSingle(),
+          sb.from("lesson_progress").select("lesson"),
+          sb
+            .from("practice_sessions")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(300),
+          sb
+            .from("songs")
+            .select("*")
+            .order("created_at", { ascending: false }),
+          sb.from("favorites").select("song_ref"),
+        ]);
+        S.p = p.data || {
+          display_name: S.u.user_metadata?.display_name || "Musician",
+          instrument: "guitar",
+          level: "beginner",
+        };
+        if (!p.data)
+          await sb.from("profiles").upsert({
+            id: u,
+            display_name: S.p.display_name,
+            instrument: S.p.instrument,
+            level: S.p.level,
+          });
+        S.prog = new Set((l.data || []).map((x) => x.lesson));
+        S.logs = g.data || [];
+        S.songs = so.data || [];
+        S.favs = new Set((f.data || []).map((x) => x.song_ref));
+      }
+      const fail = (e) => {
+        if (e) {
+          console.error(e);
+          toast("Error: " + e.message, 1);
+          return true;
+        }
+      };
+
+      /* ============ 9. PRACTICE LOG + DASHBOARD ============ */
+      function practiceView() {
+        const day = (d) => {
+          const x = new Date(d);
+          return x.getFullYear() + "-" + (x.getMonth() + 1) + "-" + x.getDate();
+        };
+        const mins = {};
+        S.logs.forEach((l) => {
+          const k = day(l.created_at);
+          mins[k] = (mins[k] || 0) + l.minutes;
+        });
+        let streak = 0,
+          d = new Date();
+        if (!mins[day(d)]) d.setDate(d.getDate() - 1);
+        while (mins[day(d)]) {
+          streak++;
+          d.setDate(d.getDate() - 1);
+        }
+        const week = [...Array(7)].map((_, i) => {
+          const x = new Date();
+          x.setDate(x.getDate() - 6 + i);
+          return [
+            x.toLocaleDateString("en", { weekday: "short" }),
+            mins[day(x)] || 0,
+          ];
+        });
+        const mx = Math.max(30, ...week.map((w) => w[1])),
+          total = S.logs.reduce((a, l) => a + l.minutes, 0);
+        const ins = h(
+            "select",
+            {},
+            opts(
+              ["guitar", "bass", "ukulele", "piano", "drums", "voice", "other"],
+              S.p.instrument,
+            ),
+          ),
+          mi = h("input", {
+            type: "number",
+            min: "1",
+            max: "600",
+            value: "20",
+          }),
+          nt = h("input", {
+            maxlength: "200",
+            placeholder: "What did you work on?",
+          });
+        const list = h("div", { class: "list" });
+        const paint = () =>
+          list.replaceChildren(
+            ...(S.logs.length
+              ? S.logs.slice(0, 12).map((l) =>
+                  h("div", {}, [
+                    h("div", {}, [
+                      h("b", {}, l.minutes + " min, " + l.instrument),
+                      h(
+                        "div",
+                        { class: "sub" },
+                        new Date(l.created_at).toLocaleDateString("en", {
+                          month: "short",
+                          day: "numeric",
+                        }) + (l.note ? " - " + l.note : ""),
+                      ),
+                    ]),
+                    h(
+                      "button",
+                      {
+                        class: "btn g sm",
+                        onclick: async () => {
+                          if (
+                            fail(
+                              (
+                                await sb
+                                  .from("practice_sessions")
+                                  .delete()
+                                  .eq("id", l.id)
+                              ).error,
+                            )
+                          )
+                            return;
+                          S.logs = S.logs.filter((x) => x.id !== l.id);
+                          shell.go("practice");
+                        },
+                      },
+                      "Delete",
+                    ),
+                  ]),
+                )
+              : [
+                  h(
+                    "p",
+                    { class: "sub" },
+                    "No sessions yet. Log your first one above.",
+                  ),
+                ]),
+          );
+        paint();
+        return page(
+          "Hi, " + S.p.display_name,
+          "Your practice at a glance.",
+          h(
+            "div",
+            { class: "grid" },
+            [
+              [total + " min", "Total practice"],
+              [streak + " days", "Current streak"],
+              [S.logs.length, "Sessions logged"],
+              [S.prog.size + "/10", "Lessons completed"],
+            ].map(([a, b]) =>
+              h("div", { class: "card stat" }, [
+                h("b", {}, String(a)),
+                h("span", {}, b),
+              ]),
+            ),
+          ),
+          h("div", { class: "card", style: "margin-bottom:1.25rem" }, [
+            h("b", {}, "Last 7 days"),
+            h(
+              "div",
+              { class: "bars" },
+              week.map(([l, v]) =>
+                h("div", {}, [
+                  h("i", {
+                    style: "height:" + Math.round((v / mx) * 90) + "px",
+                    title: v + " min",
+                  }),
+                  l,
+                ]),
+              ),
+            ),
+          ]),
+          h("div", { class: "card", style: "margin-bottom:1.25rem" }, [
+            h("b", {}, "Log a session"),
+            h("div", { class: "row" }, [
+              h("div", { class: "grow" }, [h("label", {}, "Instrument"), ins]),
+              h("div", { class: "grow" }, [h("label", {}, "Minutes"), mi]),
+              h("div", { class: "grow", style: "flex-basis:240px" }, [
+                h("label", {}, "Note"),
+                nt,
+              ]),
+            ]),
+            h(
+              "button",
+              {
+                class: "btn",
+                style: "margin-top:1rem",
+                onclick: async (e) => {
+                  const m = parseInt(mi.value, 10);
+                  if (!(m >= 1 && m <= 600))
+                    return toast("Minutes must be between 1 and 600.", 1);
+                  e.target.disabled = true;
+                  const r = await sb
+                    .from("practice_sessions")
+                    .insert({
+                      user_id: S.u.id,
+                      instrument: ins.value,
+                      minutes: m,
+                      note: nt.value.trim().slice(0, 200) || null,
+                    })
+                    .select()
+                    .single();
+                  if (fail(r.error)) {
+                    e.target.disabled = false;
+                    return;
+                  }
+                  S.logs.unshift(r.data);
+                  toast("Session saved.");
+                  shell.go("practice");
+                },
+              },
+              "Save session",
+            ),
+          ]),
+          h("div", { class: "card" }, [h("b", {}, "Recent sessions"), list]),
+        );
+      }
+
+      /* ============ 3. THEORY ============ */
+      const L = [
+        [
+          "The musical alphabet",
+          "Music uses seven letters, A to G, then starts again at A. Two notes with the same letter, one cycle apart, are an octave apart.",
+          "Which note comes after G?",
+          ["H", "A", "C", "Z"],
+          1,
+        ],
+        [
+          "The staff",
+          "Notes are written on a staff of five lines and four spaces. The higher a note sits, the higher it sounds.",
+          "How many lines does a staff have?",
+          ["3", "4", "5", "6"],
+          2,
+        ],
+        [
+          "Treble clef",
+          "The lines of the treble clef are E, G, B, D, F. The spaces are F, A, C, E.",
+          "What do the treble clef spaces spell?",
+          ["BEAD", "FACE", "CAGE", "DEAF"],
+          1,
+        ],
+        [
+          "Bass clef",
+          "The lines of the bass clef are G, B, D, F, A. The spaces are A, C, E, G. Low instruments read from it.",
+          "Which instrument reads bass clef?",
+          ["Flute", "Bass guitar", "Violin", "Piccolo"],
+          1,
+        ],
+        [
+          "Note values",
+          "A whole note lasts 4 beats, a half note 2, a quarter note 1 and an eighth note half a beat.",
+          "How many beats is a half note?",
+          ["1", "2", "3", "4"],
+          1,
+        ],
+        [
+          "Time signatures",
+          "The top number is how many beats fit in a measure. The bottom number says which note gets one beat.",
+          "How many beats are in a measure of 4/4?",
+          ["2", "3", "4", "8"],
+          2,
+        ],
+        [
+          "Sharps and flats",
+          "A sharp raises a note by one semitone and a flat lowers it by one. Some notes share a pitch under two names.",
+          "Which note is the same pitch as C sharp?",
+          ["D flat", "D", "B", "C flat"],
+          0,
+        ],
+        [
+          "Major scale",
+          "A major scale climbs in the step pattern whole, whole, half, whole, whole, whole, half. C major uses only the white piano keys.",
+          "How many different notes are in a major scale?",
+          ["5", "7", "8", "12"],
+          1,
+        ],
+        [
+          "Chords",
+          "A chord is three or more notes played together. A major chord stacks a major third and a fifth on the root; a minor chord lowers the third.",
+          "Which notes make a C major chord?",
+          ["C E G", "C E flat G", "C F G", "D F A"],
+          0,
+        ],
+        [
+          "Tempo and rhythm",
+          "Tempo is measured in beats per minute (BPM). Practice with a metronome to keep your pulse steady.",
+          "What does 60 BPM mean?",
+          [
+            "One beat per second",
+            "Two beats per second",
+            "One beat every two seconds",
+            "Sixty measures",
+          ],
+          0,
+        ],
+      ];
+      function theoryView() {
+        const box = h("div"),
+          pct = Math.round(S.prog.size * 10);
+        const menu = () =>
+          box.replaceChildren(
+            h("div", { class: "card", style: "margin-bottom:1rem" }, [
+              h("b", {}, S.prog.size + " of 10 lessons complete"),
+              h(
+                "div",
+                { class: "bar" },
+                h("i", { style: "width:" + pct + "%" }),
+              ),
+            ]),
+            h(
+              "div",
+              { class: "grid" },
+              L.map((l, i) =>
+                h(
+                  "button",
+                  {
+                    class: "card opt",
+                    style: "margin:0;min-height:96px",
+                    onclick: () => lesson(i),
+                  },
+                  [
+                    h("b", {}, i + 1 + ". " + l[0]),
+                    h(
+                      "div",
+                      { class: "sub" },
+                      S.prog.has(i) ? "Completed" : "Not started",
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        const lesson = (i) => {
+          const l = L[i],
+            fb = h("p", { class: "msg" });
+          box.replaceChildren(
+            h(
+              "button",
+              { class: "btn g sm", onclick: () => shell.go("theory") },
+              "All lessons",
+            ),
+            h(
+              "div",
+              { class: "card", style: "margin-top:1rem;max-width:640px" },
+              [
+                h("h1", { style: "font-size:1.4rem" }, l[0]),
+                h("p", { style: "margin:.6rem 0 1.2rem" }, l[1]),
+                h("b", {}, l[2]),
+                ...l[3].map((o, j) =>
+                  h(
+                    "button",
+                    {
+                      class: "opt",
+                      onclick: async (e) => {
+                        const all = [
+                          ...e.target.parentNode.querySelectorAll(".opt"),
+                        ];
+                        all.forEach((x) => (x.disabled = true));
+                        if (j === l[4]) {
+                          e.target.classList.add("ok");
+                          fb.className = "msg ok";
+                          fb.textContent = "Correct.";
+                          if (!S.prog.has(i)) {
+                            const r = await sb.from("lesson_progress").upsert({
+                              user_id: S.u.id,
+                              lesson: i,
+                              score: 10,
+                            });
+                            if (!r.error) S.prog.add(i);
+                          }
+                        } else {
+                          e.target.classList.add("bad");
+                          all[l[4]].classList.add("ok");
+                          fb.textContent =
+                            "Not quite. The correct answer is highlighted.";
+                        }
+                        fb.after(
+                          h("div", { class: "row" }, [
+                            h(
+                              "button",
+                              { class: "btn g sm", onclick: () => lesson(i) },
+                              "Review lesson",
+                            ),
+                            i < 9 &&
+                              h(
+                                "button",
+                                {
+                                  class: "btn sm",
+                                  onclick: () => lesson(i + 1),
+                                },
+                                "Next lesson",
+                              ),
+                          ]),
+                        );
+                      },
+                    },
+                    o,
+                  ),
+                ),
+                fb,
+              ],
+            ),
+          );
+        };
+        menu();
+        return page(
+          "Music theory",
+          "Ten short lessons. Progress is saved to your account.",
+          box,
+        );
+      }
+
+      /* ============ PITCH ENGINE (autocorrelation) ============ */
+      let ac, an, buf, raf, stream;
+      const NN = [
+        "C",
+        "C#",
+        "D",
+        "D#",
+        "E",
+        "F",
+        "F#",
+        "G",
+        "G#",
+        "A",
+        "A#",
+        "B",
+      ];
+      const hz = (n) => {
+        const m = n.match(/^([A-G]#?)(\d)$/);
+        return 440 * 2 ** ((NN.indexOf(m[1]) + 12 * (+m[2] + 1) - 69) / 12);
+      };
+      const cents = (f, t) => 1200 * Math.log2(f / t);
+      const nameOf = (f) => {
+        const m = Math.round(69 + 12 * Math.log2(f / 440));
+        return NN[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+      };
+      function pitch(b, sr) {
+        let c0 = 0;
+        const n = b.length >> 1;
+        for (let i = 0; i < n; i++) c0 += b[i] * b[i];
+        if (Math.sqrt(c0 / n) < 0.012) return -1;
+        const min = Math.floor(sr / 1200),
+          max = Math.floor(sr / 38),
+          c = new Float32Array(max + 2);
+        let mx = 0;
+        for (let l = min; l <= max; l++) {
+          let s = 0;
+          for (let i = 0; i < n; i++) s += b[i] * b[i + l];
+          c[l] = s;
+        }
+        for (let l = min + 1; l < max; l++)
+          if (c[l] > c[l - 1] && c[l] >= c[l + 1] && c[l] > mx) mx = c[l];
+        if (mx < 0.5 * c0) return -1;
+        for (let l = min + 1; l < max; l++)
+          if (c[l] > c[l - 1] && c[l] >= c[l + 1] && c[l] >= 0.9 * mx) {
+            const a = c[l - 1],
+              d = c[l + 1],
+              p = (a - d) / (2 * (a - 2 * c[l] + d));
+            return sr / (l + (isFinite(p) ? p : 0));
+          }
+        return -1;
+      }
+      async function mic(cb, onErr) {
+        try {
+          ac = ac || new AudioContext();
+          await ac.resume();
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false,
+            },
+          });
+          an = ac.createAnalyser();
+          an.fftSize = 4096;
+          ac.createMediaStreamSource(stream).connect(an);
+          buf = new Float32Array(an.fftSize);
+          const loop = () => {
+            an.getFloatTimeDomainData(buf);
+            cb(pitch(buf, ac.sampleRate));
+            raf = requestAnimationFrame(loop);
+          };
+          loop();
+          return true;
+        } catch (e) {
+          onErr(
+            "Microphone access was blocked. Allow it in your browser settings and try again.",
+          );
+          return false;
+        }
+      }
+      function stopMic() {
+        cancelAnimationFrame(raf);
+        if (stream) stream.getTracks().forEach((t) => t.stop());
+        stream = null;
+      }
+      function meter() {
+        const w = h("div");
+        w.innerHTML =
+          '<svg class="meter" viewBox="0 0 300 170" role="img" aria-label="Tuning meter"><path d="M30 150A120 120 0 0 1 270 150" fill="none" stroke="#d3d9df" stroke-width="2"/><path d="M135 32A120 120 0 0 1 165 32" fill="none" stroke="#1f8f5f" stroke-width="6"/>' +
+          [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50]
+            .map(
+              (v) =>
+                '<line x1="150" y1="22" x2="150" y2="' +
+                (v % 50 === 0 || v === 0 ? 12 : 16) +
+                '" stroke="#5d6b7a" stroke-width="2" transform="rotate(' +
+                v * 0.9 +
+                ' 150 150)"/>',
+            )
+            .join("") +
+          '<line id="nd" x1="150" y1="150" x2="150" y2="30" stroke="#16202b" stroke-width="3" stroke-linecap="round" style="transition:transform .12s"/><circle cx="150" cy="150" r="7" fill="#16202b"/></svg>';
+        const nd = w.querySelector("#nd");
+        let sm = 0;
+        return {
+          el: w.firstChild,
+          set: (c) => {
+            sm = sm * 0.7 + Math.max(-50, Math.min(50, c)) * 0.3;
+            nd.setAttribute("transform", "rotate(" + sm * 0.9 + " 150 150)");
+          },
+        };
+      }
+      function readout() {
+        const n = h("div", { class: "note mono" }, "--"),
+          f = h("div", { class: "hz mono" }, "0.0 Hz"),
+          s = h("div", { class: "status" }, "Waiting for sound");
+        return {
+          el: h("div", { class: "read" }, [n, f, s]),
+          show: (a, b, c, cl) => {
+            n.textContent = a;
+            f.textContent = b;
+            s.textContent = c;
+            s.className = "status " + (cl || "");
+          },
+        };
+      }
+      function inTuneText(c) {
+        return Math.abs(c) < 5
+          ? ["In tune", "ok"]
+          : c < 0
+            ? ["Too low: tune up", "bad"]
+            : ["Too high: tune down", "bad"];
+      }
+
+      /* ============ 4. TUNER ============ */
+      const PRE = {
+        "Guitar, standard": ["E2", "A2", "D3", "G3", "B3", "E4"],
+        "Guitar, drop D": ["D2", "A2", "D3", "G3", "B3", "E4"],
+        "Guitar, half step down": ["D#2", "G#2", "C#3", "F#3", "A#3", "D#4"],
+        "Bass, standard": ["E1", "A1", "D2", "G2"],
+        Ukulele: ["G4", "C4", "E4", "A4"],
+      };
+      function tunerView() {
+        let pre = Object.keys(PRE)[0],
+          on = false;
+        const M = meter(),
+          R = readout(),
+          chips = h("div", {
+            class: "row",
+            style: "justify-content:center;margin-top:1rem",
+          }),
+          sel = h(
+            "select",
+            { "aria-label": "Tuning preset" },
+            opts(Object.keys(PRE), pre),
+          ),
+          btn = h("button", { class: "btn" }, "Start listening"),
+          err = h("p", { class: "msg" });
+        const drawChips = (a) =>
+          chips.replaceChildren(
+            ...PRE[pre].map((n) =>
+              h("span", { class: "chip mono" + (n === a ? " on" : "") }, n),
+            ),
+          );
+        sel.onchange = () => {
+          pre = sel.value;
+          drawChips();
+        };
+        drawChips();
+        const stop = () => {
+          stopMic();
+          on = false;
+          btn.textContent = "Start listening";
+        };
+        cleanup = stop;
+        btn.onclick = async () => {
+          if (on) return stop();
+          err.textContent = "";
+          btn.disabled = true;
+          on = await mic(
+            (f) => {
+              if (f < 0) return;
+              let best = null;
+              PRE[pre].forEach((n) => {
+                const c = cents(f, hz(n));
+                if (!best || Math.abs(c) < Math.abs(best[1])) best = [n, c];
+              });
+              M.set(best[1]);
+              const t = inTuneText(best[1]);
+              R.show(
+                best[0].replace(/\d/, ""),
+                f.toFixed(1) + " Hz",
+                t[0] + " (" + Math.round(best[1]) + " cents)",
+                t[1],
+              );
+              drawChips(best[0]);
+            },
+            (m) => (err.textContent = m),
+          );
+          btn.disabled = false;
+          if (on) btn.textContent = "Stop";
+        };
+        return page(
+          "Instrument tuner",
+          "Play one string at a time. The closest string in your tuning is picked automatically.",
+          h("div", { class: "card" }, [
+            h(
+              "div",
+              { style: "max-width:320px;margin:0 auto 1rem" },
+              field("Tuning", sel),
+            ),
+            M.el,
+            R.el,
+            chips,
+            h("div", { style: "text-align:center;margin-top:1.2rem" }, btn),
+            err,
+          ]),
+        );
+      }
+
+      /* ============ 5. VOICE TRAINER ============ */
+      function voiceView() {
+        const notes = [];
+        for (let o = 2; o <= 5; o++)
+          NN.forEach((n) => {
+            if (!n.includes("#")) notes.push(n + o);
+          });
+        let tgt = "C4",
+          on = false;
+        const M = meter(),
+          R = readout(),
+          sel = h("select", { "aria-label": "Target note" }, opts(notes, tgt)),
+          btn = h("button", { class: "btn" }, "Start singing"),
+          err = h("p", { class: "msg" });
+        sel.onchange = () => (tgt = sel.value);
+        const stop = () => {
+          stopMic();
+          on = false;
+          btn.textContent = "Start singing";
+        };
+        cleanup = stop;
+        btn.onclick = async () => {
+          if (on) return stop();
+          err.textContent = "";
+          btn.disabled = true;
+          on = await mic(
+            (f) => {
+              if (f < 0) return;
+              const c = cents(f, hz(tgt));
+              M.set(c);
+              const t =
+                Math.abs(c) < 15
+                  ? ["On pitch", "ok"]
+                  : c < 0
+                    ? ["Sing higher", "bad"]
+                    : ["Sing lower", "bad"];
+              R.show(
+                nameOf(f),
+                f.toFixed(1) + " Hz",
+                t[0] + " (" + Math.round(c) + " cents)",
+                t[1],
+              );
+            },
+            (m) => (err.textContent = m),
+          );
+          btn.disabled = false;
+          if (on) btn.textContent = "Stop";
+        };
+        return page(
+          "Voice trainer",
+          "Pick a target note and hold it. The needle shows how far off you are.",
+          h("div", { class: "card" }, [
+            h(
+              "div",
+              { style: "max-width:320px;margin:0 auto 1rem" },
+              field("Target note", sel),
+            ),
+            M.el,
+            R.el,
+            h("div", { style: "text-align:center;margin-top:1.2rem" }, btn),
+            err,
+          ]),
+        );
+      }
+
+      /* ============ 6. CHORD LIBRARY (progressions only; add full sheets in My songs) ============ */
+      const BUILT = [
+        {
+          id: "b:shut-up",
+          title: "Shut Up and Dance",
+          artist: "Walk the Moon",
+          body: "Verse\n[Am] [F] [C] [G]\n\nChorus\n[C] [G] [Am] [F]",
+        },
+        {
+          id: "b:perfect",
+          title: "Perfect",
+          artist: "Ed Sheeran",
+          body: "Verse\n[C] [Am] [F] [G]\n\nChorus\n[F] [G] [C] [Am]",
+        },
+        {
+          id: "b:someone",
+          title: "Someone Like You",
+          artist: "Adele",
+          body: "Verse\n[C] [G] [Am] [F]\n\nChorus\n[F] [C] [G] [Am]",
+        },
+      ];
+      const SH = (n, s) =>
+        NN[
+          (NN.indexOf(
+            { Db: "C#", Eb: "D#", Gb: "F#", Ab: "G#", Bb: "A#" }[n] || n,
+          ) +
+            s +
+            120) %
+            12
+        ];
+      const TR = (c, s) => {
+        const m = c.match(/^([A-G][#b]?)([^/]*)(?:\/([A-G][#b]?))?$/);
+        return m ? SH(m[1], s) + m[2] + (m[3] ? "/" + SH(m[3], s) : "") : c;
+      };
+      const tones = (c) => {
+        const m = c.match(/^([A-G][#b]?)([^/]*)/);
+        if (!m) return "";
+        const r = NN.indexOf(SH(m[1], 0)),
+          mn = /^m(?!aj)/.test(m[2]);
+        return [0, mn ? 3 : 4, 7].map((i) => NN[(r + i) % 12]).join(" ");
+      };
+      const CHORDS = [
+        ["A", [ "x", 0, 2, 2, 2, 0 ], [0, 0, 1, 2, 3, 0], "Keep your fingers curled so each string rings clearly."],
+        ["Am", ["x", 0, 2, 2, 1, 0], [0, 0, 2, 3, 1, 0], "Place your index finger on the B string, first fret."],
+        ["A7", ["x", 0, 2, 0, 2, 0], [0, 0, 2, 0, 3, 0], "Leave the D and high E strings open."],
+        ["B7", ["x", 2, 1, 2, 0, 2], [0, 2, 1, 3, 0, 4], "Keep the high E string open; avoid the low E string."],
+        ["C", ["x", 3, 2, 0, 1, 0], [0, 3, 2, 0, 1, 0], "Stretch across three frets and strum from the A string."],
+        ["C7", ["x", 3, 2, 3, 1, 0], [0, 3, 2, 4, 1, 0], "Strum from the A string; keep the high E string open."],
+        ["D", ["x", "x", 0, 2, 3, 2], [0, 0, 0, 1, 3, 2], "Strum only the four thinnest strings."],
+        ["Dm", ["x", "x", 0, 2, 3, 1], [0, 0, 0, 2, 3, 1], "Strum only the four thinnest strings."],
+        ["D7", ["x", "x", 0, 2, 1, 2], [0, 0, 0, 2, 1, 3], "Strum only the four thinnest strings."],
+        ["E", [0, 2, 2, 1, 0, 0], [0, 2, 3, 1, 0, 0], "All six strings can ring in this chord."],
+        ["Em", [0, 2, 2, 0, 0, 0], [0, 2, 3, 0, 0, 0], "Use two fingers and strum all six strings."],
+        ["E7", [0, 2, 0, 1, 0, 0], [0, 2, 0, 1, 0, 0], "All six strings can ring in this chord."],
+        ["F", [1, 3, 3, 2, 1, 1], [1, 3, 4, 2, 1, 1], "Index finger bars the first fret; press firmly across all strings."],
+        ["G", [3, 2, 0, 0, 0, 3], [2, 1, 0, 0, 0, 3], "Curve your fingers and let the middle strings ring open."],
+        ["G7", [3, 2, 0, 0, 0, 1], [3, 2, 0, 0, 0, 1], "Keep the D, G and B strings open."],
+        ["Bm", ["x", 2, 4, 4, 3, 2], [0, 1, 3, 4, 2, 1], "Index finger bars the second fret; avoid the low E string."],
+        ["F#m", [2, 4, 4, 2, 2, 2], [1, 3, 4, 1, 1, 1], "Index finger bars the second fret across all six strings."],
+      ].map(([name, frets, fingers, tip]) => ({ name, frets, fingers, tip }));
+      let selectedChord = "C";
+      function chordDiagram(chord) {
+        const x0 = 38,
+          y0 = 48,
+          dx = 25,
+          dy = 31,
+          grid = [];
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", "0 0 230 225");
+        svg.setAttribute("class", "chord-diagram");
+        svg.setAttribute("role", "img");
+        svg.setAttribute("aria-label", chord.name + " guitar chord fingering diagram");
+        const add = (tag, attrs, text) => {
+          const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+          for (const key in attrs) el.setAttribute(key, attrs[key]);
+          if (text) el.textContent = text;
+          grid.push(el);
+        };
+        for (let string = 0; string < 6; string++)
+          add("line", {
+              x1: x0 + string * dx,
+              y1: y0,
+              x2: x0 + string * dx,
+              y2: y0 + 5 * dy,
+              stroke: "currentColor",
+              "stroke-width": "2",
+            });
+        for (let fret = 0; fret <= 5; fret++)
+          add("line", {
+              x1: x0,
+              y1: y0 + fret * dy,
+              x2: x0 + 5 * dx,
+              y2: y0 + fret * dy,
+              stroke: "currentColor",
+              "stroke-width": fret === 0 ? "5" : "2",
+            });
+        chord.frets.forEach((fret, string) => {
+          const x = x0 + string * dx;
+          if (fret === "x" || fret === 0) {
+            add(
+              "text",
+              {
+                  x,
+                  y: 29,
+                  "text-anchor": "middle",
+                  class: "diagram-mark",
+                },
+              fret === 0 ? "○" : "×",
+            );
+          } else {
+            const y = y0 + (fret - 0.5) * dy;
+            add("circle", { cx: x, cy: y, r: 10, class: "diagram-dot" });
+            add(
+              "text",
+              {
+                  x,
+                  y: y + 4,
+                  "text-anchor": "middle",
+                  class: "diagram-finger",
+                },
+              chord.fingers[string] || "",
+            );
+          }
+        });
+        svg.append(...grid);
+        return svg;
+      }
+      const allSongs = () => [
+        ...BUILT,
+        ...S.songs.map((s) => ({ ...s, id: "u:" + s.id, mine: 1 })),
+      ];
+      function parseSongBody(body) {
+        const rows = [];
+        const lines = (body || "").split(/\r?\n/);
+        let pending = [];
+        for (const raw of lines) {
+          const line = raw.trimEnd();
+          if (!line.trim()) {
+            if (pending.length) {
+              rows.push({ type: "chords", chords: pending.slice() });
+              pending = [];
+            }
+            continue;
+          }
+          if (/^(verse|chorus|pre-chorus|bridge|intro|outro|hook|tag)\b/i.test(line)) {
+            if (pending.length) {
+              rows.push({ type: "chords", chords: pending.slice() });
+              pending = [];
+            }
+            rows.push({ type: "section", text: line });
+            continue;
+          }
+          const chordLine = /^\s*(?:\[[^\]]+\]\s*)+$/.test(line);
+          if (chordLine) {
+            pending = [...line.matchAll(/\[([^\]]+)\]/g)].map((m) => m[1]);
+            continue;
+          }
+          const matches = [...line.matchAll(/\[([^\]]+)\]/g)];
+          if (pending.length) {
+            rows.push({
+              type: "lyric",
+              text: line.replace(/\[[^\]]+\]/g, "").replace(/\s+/g, " ").trim(),
+              chords: pending.slice(),
+            });
+            pending = [];
+            continue;
+          }
+          if (matches.length) {
+            const groups = [];
+            let carrying = null;
+            for (const piece of line.split(/(\[[^\]]+\])/).filter(Boolean)) {
+              if (/^\[[^\]]+\]$/.test(piece)) {
+                if (carrying) groups.push(carrying);
+                carrying = { chord: piece.slice(1, -1), text: "" };
+              } else {
+                const text = piece.trim();
+                if (!text) continue;
+                if (carrying) {
+                  carrying.text = (carrying.text + " " + text).trim();
+                } else {
+                  groups.push({ chord: null, text });
+                }
+              }
+            }
+            if (carrying) groups.push(carrying);
+            rows.push({ type: "lyric-inline", groups });
+            continue;
+          }
+          rows.push({ type: "lyric", text: line, chords: [] });
+        }
+        if (pending.length) rows.push({ type: "chords", chords: pending.slice() });
+        return rows;
+      }
+      function songChordLabel(name, interactive) {
+        if (!interactive)
+          return h("span", { class: "song-chord" }, name);
+        if (!CHORDS.some((chord) => chord.name === name))
+          return h(
+            "span",
+            { class: "song-chord", title: "No fingering chart for this chord yet" },
+            name,
+          );
+        return h(
+          "button",
+          {
+            class: "song-chord chord-link",
+            title: "Learn " + name,
+            onclick: () => {
+              selectedChord = name;
+              shell.go("chords");
+            },
+          },
+          name,
+        );
+      }
+      function renderedSongRows(body, transposition, interactive) {
+        return parseSongBody(body).map((row) => {
+          if (row.type === "section")
+            return h("div", { class: "song-section" }, row.text);
+          if (row.type === "chords")
+            return h(
+              "div",
+              { class: "song-chord-row" },
+              row.chords.map((chord) =>
+                songChordLabel(TR(chord, transposition), interactive),
+              ),
+            );
+          if (row.type === "lyric-inline")
+            return h(
+              "div",
+              { class: "song-line" },
+              row.groups.map((group) =>
+                h("div", { class: "song-line-group" }, [
+                  group.chord &&
+                    songChordLabel(TR(group.chord, transposition), interactive),
+                  h("span", { class: "song-word" }, group.text || ""),
+                ]),
+              ),
+            );
+          if (row.type === "lyric")
+            return h(
+              "div",
+              { class: "song-lyric-line" },
+              row.chords.length
+                ? [
+                    h(
+                      "div",
+                      { class: "song-chord-row" },
+                      row.chords.map((chord) =>
+                        songChordLabel(TR(chord, transposition), interactive),
+                      ),
+                    ),
+                    h("div", { class: "song-word" }, row.text),
+                  ]
+                : row.text,
+            );
+          return h("div", {});
+        });
+      }
+      function songDetail(s, back) {
+        let st = 0,
+          nt = false;
+        const out = h("div", { class: "card sheet" }),
+          lab = h("span", { class: "mono" }, "0");
+        const paint = () => {
+          lab.textContent = (st > 0 ? "+" : "") + st;
+          out.replaceChildren(...renderedSongRows(s.body, st, true));
+        };
+        paint();
+        const fav = h("button", { class: "btn g sm" }),
+          fp = () =>
+            (fav.textContent = S.favs.has(s.id)
+              ? "Remove from setlist"
+              : "Add to setlist");
+        fp();
+        fav.onclick = async () => {
+          const has = S.favs.has(s.id);
+          const r = has
+            ? await sb.from("favorites").delete().eq("song_ref", s.id)
+            : await sb
+                .from("favorites")
+                .insert({ user_id: S.u.id, song_ref: s.id });
+          if (fail(r.error)) return;
+          has ? S.favs.delete(s.id) : S.favs.add(s.id);
+          fp();
+        };
+        return h("div", {}, [
+          h("button", { class: "btn g sm", onclick: back }, "Back"),
+          h("h1", { style: "margin-top:1rem" }, s.title),
+          h("p", { class: "sub" }, s.artist || "Unknown artist"),
+          h("div", { class: "stave" }),
+          h("div", { class: "row", style: "margin-bottom:1rem" }, [
+            h("span", {}, "Transpose"),
+            h(
+              "button",
+              {
+                class: "btn g sm",
+                "aria-label": "Down one semitone",
+                onclick: () => {
+                  st = Math.max(-11, st - 1);
+                  paint();
+                },
+              },
+              "-",
+            ),
+            lab,
+            h(
+              "button",
+              {
+                class: "btn g sm",
+                "aria-label": "Up one semitone",
+                onclick: () => {
+                  st = Math.min(11, st + 1);
+                  paint();
+                },
+              },
+              "+",
+            ),
+            h(
+              "button",
+              {
+                class: "btn g sm",
+                onclick: (e) => {
+                  nt = !nt;
+                  e.target.textContent = nt
+                    ? "Hide chord notes"
+                    : "Show chord notes";
+                  paint();
+                },
+              },
+              "Show chord notes",
+            ),
+            fav,
+          ]),
+          out,
+        ]);
+      }
+      function chordsView() {
+        const box = h("div"),
+          chordSearch = h("input", {
+            type: "search",
+            placeholder: "Search chords (C, Am, G7...)",
+            maxlength: "20",
+            "aria-label": "Search chords",
+          }),
+          songSearch = h("input", {
+            type: "search",
+            placeholder: "Search by song title or artist",
+            maxlength: "60",
+            "aria-label": "Search songs",
+          }),
+          detail = h("div"),
+          chordList = h("div", { class: "chord-library-list" }),
+          songList = h("div", { class: "list" }),
+          open = (s) =>
+            box.replaceChildren(songDetail(s, () => shell.go("chords")));
+        const drawChord = () => {
+          const chord = CHORDS.find((item) => item.name === selectedChord) || CHORDS[0];
+          detail.replaceChildren(
+            h("div", { class: "chord-detail" }, [
+              h("div", { class: "chord-diagram-wrap" }, [
+                h("h2", {}, chord.name),
+                chordDiagram(chord),
+                h("div", { class: "sub chord-strings" }, "Thickest string on the left • × = don't play • ○ = open"),
+              ]),
+              h("div", { class: "chord-howto" }, [
+                h("div", { class: "eyebrow" }, "GUITAR CHORD"),
+                h("h2", {}, "How to play " + chord.name),
+                h("p", { class: "sub" }, chord.tip),
+                h("p", { class: "chord-fingers" }, [
+                  h("b", {}, "Finger numbers: "),
+                  "1 index · 2 middle · 3 ring · 4 pinky",
+                ]),
+                h("div", { class: "chord-notes" }, [
+                  h("b", {}, "Notes"),
+                  h("span", { class: "mono" }, tones(chord.name)),
+                ]),
+                h("p", { class: "sub" }, "Press just behind each fret and check each string sounds clear."),
+              ]),
+            ]),
+          );
+          const term = chordSearch.value.trim().toLowerCase();
+          const matching = CHORDS.filter((item) =>
+            item.name.toLowerCase().includes(term),
+          );
+          chordList.replaceChildren(
+            ...matching.map((item) =>
+              h(
+                "button",
+                {
+                  class:
+                    "chord-choice" + (item.name === chord.name ? " active" : ""),
+                  onclick: () => {
+                    selectedChord = item.name;
+                    drawChord();
+                  },
+                },
+                item.name,
+              ),
+            ),
+          );
+          if (!matching.length)
+            chordList.append(h("p", { class: "sub" }, "No matching chords in the beginner library yet."));
+        };
+        const drawSongs = () => {
+          const term = songSearch.value.trim().toLowerCase();
+          const matches = allSongs().filter((song) =>
+            (song.title + " " + (song.artist || "")).toLowerCase().includes(term),
+          );
+          songList.replaceChildren(
+            ...(matches.length
+              ? matches.map((song) =>
+                  h("div", {}, [
+                    h("div", {}, [
+                      h("b", {}, song.title),
+                      h("div", { class: "sub" }, song.artist || ""),
+                    ]),
+                    h(
+                      "button",
+                      { class: "btn g sm", onclick: () => open(song) },
+                      "Open song",
+                    ),
+                  ]),
+                )
+              : [
+                  h(
+                    "p",
+                    { class: "sub" },
+                    "No songs match. Add your lyrics and chords in Songs.",
+                  ),
+                ]),
+          );
+        };
+        chordSearch.oninput = drawChord;
+        songSearch.oninput = drawSongs;
+        drawChord();
+        drawSongs();
+        box.append(
+          h("section", { class: "card chord-library-card" }, [
+            h("div", { class: "chord-library-heading" }, [
+              h("div", {}, [
+                h("h2", {}, "Learn a chord"),
+                h("p", { class: "sub" }, "Choose a chord to see where to put your fingers."),
+              ]),
+              chordSearch,
+            ]),
+            h("div", { class: "chord-library-layout" }, [
+              detail,
+              h("aside", { class: "chord-more" }, [
+                h("h3", {}, "More chords"),
+                chordList,
+              ]),
+            ]),
+          ]),
+          h("section", { class: "card song-library-card" }, [
+            h("div", { class: "chord-library-heading" }, [
+              h("div", {}, [
+                h("h2", {}, "Songs"),
+                h("p", { class: "sub" }, "Open a song to see its chords above the lyrics. Tap a chord to learn its fingering."),
+              ]),
+              songSearch,
+            ]),
+            songList,
+          ]),
+        );
+        return page(
+          "Chord library",
+          "Learn guitar chord shapes, then practice them in song charts.",
+          box,
+        );
+      }
+
+      /* ============ 7. METRONOME ============ */
+      function metroView() {
+        let bpm = 100,
+          sig = 4,
+          beat = 0,
+          next = 0,
+          timer = null,
+          taps = [],
+          acc = true;
+        const bi = h("input", {
+            type: "number",
+            min: "30",
+            max: "300",
+            value: bpm,
+            "aria-label": "BPM",
+          }),
+          dots = h("div", { class: "beats" }),
+          btn = h("button", { class: "btn" }, "Start");
+        const drawDots = (a) =>
+          dots.replaceChildren(
+            ...[...Array(sig)].map((_, i) =>
+              h("span", { class: i === a ? "on" : "" }),
+            ),
+          );
+        drawDots(-1);
+        const click = (t, hi) => {
+          const o = ac.createOscillator(),
+            g = ac.createGain();
+          o.frequency.value = hi && acc ? 1600 : 1000;
+          g.gain.setValueAtTime(0.4, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+          o.connect(g).connect(ac.destination);
+          o.start(t);
+          o.stop(t + 0.07);
+        };
+        const stop = () => {
+          clearInterval(timer);
+          timer = null;
+          btn.textContent = "Start";
+          drawDots(-1);
+        };
+        cleanup = stop;
+        const start = () => {
+          ac = ac || new AudioContext();
+          ac.resume();
+          beat = 0;
+          next = ac.currentTime + 0.05;
+          btn.textContent = "Stop";
+          timer = setInterval(() => {
+            while (next < ac.currentTime + 0.12) {
+              const b = beat % sig;
+              click(next, b === 0);
+              setTimeout(
+                () => drawDots(b),
+                Math.max(0, (next - ac.currentTime) * 1000),
+              );
+              next += 60 / bpm;
+              beat++;
+            }
+          }, 25);
+        };
+        btn.onclick = () => (timer ? stop() : start());
+        const setB = (v) => {
+          bpm = Math.max(30, Math.min(300, Math.round(v) || 100));
+          bi.value = bpm;
+        };
+        bi.onchange = () => setB(bi.value);
+        const ts = h(
+          "select",
+          {
+            "aria-label": "Time signature",
+            onchange: (e) => {
+              sig = +e.target.value;
+              drawDots(-1);
+            },
+          },
+          [
+            ["2", "2/4"],
+            ["3", "3/4"],
+            ["4", "4/4"],
+            ["6", "6/8"],
+          ].map(([v, l]) => {
+            const o = h("option", { value: v }, l);
+            if (v === "4") o.selected = true;
+            return o;
+          }),
+        );
+        const tap = h(
+          "button",
+          {
+            class: "btn g",
+            onclick: () => {
+              const n = performance.now();
+              taps = taps.filter((t) => n - t < 2500);
+              taps.push(n);
+              if (taps.length > 1)
+                setB(
+                  60000 /
+                    ((taps[taps.length - 1] - taps[0]) / (taps.length - 1)),
+                );
+            },
+          },
+          "Tap tempo",
+        );
+        const ck = h("input", {
+          type: "checkbox",
+          checked: "",
+          style: "width:auto",
+          onchange: (e) => (acc = e.target.checked),
+        });
+        return page(
+          "Metronome",
+          "Steady time with an accented first beat.",
+          h("div", { class: "card", style: "max-width:520px" }, [
+            dots,
+            h("div", { class: "row" }, [
+              h("div", { class: "grow" }, field("BPM", bi)),
+              h("div", { class: "grow" }, field("Time signature", ts)),
+            ]),
+            h("label", { style: "display:flex;gap:.5rem;align-items:center" }, [
+              ck,
+              "Accent the first beat",
+            ]),
+            h("div", { class: "row", style: "margin-top:1rem" }, [btn, tap]),
+          ]),
+        );
+      }
+
+      /* ============ 8. SETLIST ============ */
+      function setlistView() {
+        const box = h("div"),
+          items = allSongs().filter((s) => S.favs.has(s.id));
+        const open = (s) =>
+          box.replaceChildren(songDetail(s, () => shell.go("setlist")));
+        box.append(
+          h(
+            "div",
+            { class: "card" },
+            h(
+              "div",
+              { class: "list" },
+              items.length
+                ? items.map((s, i) =>
+                    h("div", {}, [
+                      h("div", {}, [
+                        h("b", {}, i + 1 + ". " + s.title),
+                        h("div", { class: "sub" }, s.artist || ""),
+                      ]),
+                      h(
+                        "button",
+                        { class: "btn g sm", onclick: () => open(s) },
+                        "Open",
+                      ),
+                    ]),
+                  )
+                : [
+                    h(
+                      "p",
+                      { class: "sub" },
+                      "Your setlist is empty. Open a song in Chords and choose Add to setlist.",
+                    ),
+                  ],
+            ),
+          ),
+        );
+        return page(
+          "Setlist",
+          "Songs you saved for your next practice or gig.",
+          box,
+        );
+      }
+
+      /* ============ 10. MY SONGS (full CRUD) ============ */
+      function songsView(edit) {
+        const box = h("div"),
+          t = h("input", { maxlength: "80", value: edit?.title || "" }),
+          a = h("input", { maxlength: "80", value: edit?.artist || "" }),
+          b = h(
+            "textarea",
+            {
+              maxlength: "5000",
+              "aria-label": "Song lyrics and chords",
+              placeholder: "[Am]Place a chord [G]right before [C]the word",
+            },
+            edit?.body || "",
+          ),
+          preview = h("div", { class: "card sheet song-preview" });
+        const updatePreview = () =>
+          preview.replaceChildren(...renderedSongRows(b.value, 0, false));
+        b.oninput = updatePreview;
+        updatePreview();
+        const list = h(
+          "div",
+          { class: "list" },
+          S.songs.length
+            ? S.songs.map((s) =>
+                h("div", {}, [
+                  h("div", {}, [
+                    h("b", {}, s.title),
+                    h("div", { class: "sub" }, s.artist || ""),
+                  ]),
+                  h("div", { class: "row" }, [
+                    h(
+                      "button",
+                      {
+                        class: "btn g sm",
+                        onclick: () => box.replaceWith(songsView(s)),
+                      },
+                      "Edit",
+                    ),
+                    h(
+                      "button",
+                      {
+                        class: "btn g sm",
+                        onclick: async () => {
+                          if (!confirm('Delete "' + s.title + '"?')) return;
+                          const r = await sb
+                            .from("songs")
+                            .delete()
+                            .eq("id", s.id);
+                          if (fail(r.error)) return;
+                          S.songs = S.songs.filter((x) => x.id !== s.id);
+                          S.favs.delete("u:" + s.id);
+                          shell.go("songs");
+                        },
+                      },
+                      "Delete",
+                    ),
+                  ]),
+                ]),
+              )
+            : [h("p", { class: "sub" }, "You have not added any songs yet.")],
+        );
+        box.append(
+          h("div", { class: "card", style: "margin-bottom:1.25rem" }, [
+            h("b", {}, edit ? "Edit song" : "New song"),
+            field("Title", t),
+            field("Artist", a),
+            field(
+              "Lyrics & chords",
+              b,
+            ),
+            h(
+              "p",
+              { class: "sub", style: "margin-top:.4rem" },
+              "For accurate placement, put each chord in brackets immediately before the word or syllable where it changes. Example: [Am]Kung [G]ikaw ay [C]nariyan. Chord-only lines above a lyric line are also supported.",
+            ),
+            h("b", { class: "song-preview-label" }, "Live preview"),
+            preview,
+            h("div", { class: "row", style: "margin-top:1rem" }, [
+              h(
+                "button",
+                {
+                  class: "btn",
+                  onclick: async (e) => {
+                    const row = {
+                      title: t.value.trim(),
+                      artist: a.value.trim() || null,
+                      body: b.value,
+                    };
+                    if (!row.title) return toast("Add a title.", 1);
+                    if (!row.body.trim()) return toast("Add lyrics and chords.", 1);
+                    e.target.disabled = true;
+                    const r = edit
+                      ? await sb
+                          .from("songs")
+                          .update(row)
+                          .eq("id", edit.id)
+                          .select()
+                          .single()
+                      : await sb
+                          .from("songs")
+                          .insert({ ...row, user_id: S.u.id })
+                          .select()
+                          .single();
+                    e.target.disabled = false;
+                    if (fail(r.error)) return;
+                    S.songs = edit
+                      ? S.songs.map((x) => (x.id === edit.id ? r.data : x))
+                      : [r.data, ...S.songs];
+                    toast("Song saved.");
+                    shell.go("songs");
+                  },
+                },
+                "Save song",
+              ),
+              edit &&
+                h(
+                  "button",
+                  { class: "btn g", onclick: () => shell.go("songs") },
+                  "Cancel",
+                ),
+            ]),
+          ]),
+          h("div", { class: "card" }, list),
+        );
+        return edit
+          ? box
+          : page(
+              "My songs",
+              "Write your own chord sheets. Only you can see them.",
+              box,
+            );
+      }
+
+      /* ============ 2. PROFILE + ACCOUNT ============ */
+      function profileView() {
+        const n = h("input", {
+            maxlength: "40",
+            value: S.p.display_name || "",
+          }),
+          i = h(
+            "select",
+            {},
+            opts(
+              ["guitar", "bass", "ukulele", "piano", "drums", "voice", "other"],
+              S.p.instrument,
+            ),
+          ),
+          l = h(
+            "select",
+            {},
+            opts(["beginner", "intermediate", "advanced"], S.p.level),
+          ),
+          pw = h("input", {
+            type: "password",
+            autocomplete: "new-password",
+            maxlength: "72",
+          });
+        return page(
+          "Profile",
+          "Your details and account security.",
+          h(
+            "div",
+            { class: "card", style: "max-width:520px;margin-bottom:1.25rem" },
+            [
+              h("b", {}, "Details"),
+              field("Display name", n),
+              field("Main instrument", i),
+              field("Skill level", l),
+              h(
+                "button",
+                {
+                  class: "btn",
+                  style: "margin-top:1rem",
+                  onclick: async () => {
+                    const v = n.value.trim();
+                    if (!v) return toast("Add a display name.", 1);
+                    const r = await sb.from("profiles").upsert({
+                      id: S.u.id,
+                      display_name: v,
+
+                      instrument: i.value,
+                      level: l.value,
+                    });
+                    if (fail(r.error)) return;
+                    S.p = {
+                      display_name: v,
+                      instrument: i.value,
+                      level: l.value,
+                    };
+                    toast("Profile saved.");
+                  },
+                },
+                "Save profile",
+              ),
+            ],
+          ),
+          h("div", { class: "card", style: "max-width:520px" }, [
+            h("b", {}, "Account"),
+            h("p", { class: "sub" }, S.u.email),
+            field("New password (at least 10 characters)", pw),
+            h("div", { class: "row", style: "margin-top:1rem" }, [
+              h(
+                "button",
+                {
+                  class: "btn",
+                  onclick: async () => {
+                    if (pw.value.length < 10)
+                      return toast("Use at least 10 characters.", 1);
+                    if (
+                      fail(
+                        (await sb.auth.updateUser({ password: pw.value }))
+                          .error,
+                      )
+                    )
+                      return;
+                    pw.value = "";
+                    toast("Password updated.");
+                  },
+                },
+                "Change password",
+              ),
+              h(
+                "button",
+                { class: "btn g", onclick: () => sb.auth.signOut() },
+                "Log out",
+              ),
+            ]),
+          ]),
+        );
+      }
+
+      /* ============ 1. BOOT ============ */
+      async function handleSession(session) {
+        if (!session) {
+          cleanup();
+          S.u = null;
+          S.prog = new Set();
+          S.logs = [];
+          S.songs = [];
+          S.favs = new Set();
+          authView();
+          return;
+        }
+
+        const userId = session.user.id;
+        if (S.u?.id === userId) {
+          S.u = session.user;
+          return;
+        }
+
+        S.u = session.user;
+
+        try {
+          await load();
+        } catch (error) {
+          console.error("BandMate data load failed:", error);
+        }
+
+        if (S.u?.id === userId) shell();
+      }
+
+      if (!configured) {
+        authView();
+      } else {
+        // Ipakita agad ang login habang chine-check ang session.
+        authView();
+
+        sb.auth.onAuthStateChange((event, session) => {
+          if (event === "TOKEN_REFRESHED") return;
+
+          // Patakbuhin pagkatapos makabalik ang Supabase auth callback.
+          setTimeout(() => {
+            void handleSession(session);
+          }, 0);
+        });
+      }
+    </script>
+  </body>
+</html>
