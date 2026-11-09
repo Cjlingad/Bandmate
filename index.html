@@ -1,8 +1,12 @@
 <!doctype html>
 <html lang="en">
+  
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'none'; script-src 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src data:; connect-src https://*.supabase.co wss://*.supabase.co; base-uri 'none'; form-action 'none'"
@@ -12,7 +16,7 @@
     
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232446d8'/%3E%3Cpath d='M7 11h18M7 16h18M7 21h18' stroke='white' stroke-width='2'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237255d9'/%3E%3Cpath d='M7 11h18M7 16h18M7 21h18' stroke='white' stroke-width='2'/%3E%3C/svg%3E"
     />
     <link
       href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&family=IBM+Plex+Mono:wght@500&display=swap"
@@ -37,6 +41,10 @@
         const e = document.createElement(t);
         for (const k in a) {
           if (k.startsWith("on")) e.addEventListener(k.slice(2), a[k]);
+          else if (typeof a[k] === "boolean") {
+            if (a[k]) e.setAttribute(k, "");
+            else e.removeAttribute(k);
+          }
           else e.setAttribute(k, a[k]);
         }
         []
@@ -48,20 +56,17 @@
         return e;
       };
       const IC = {
-        practice: "M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z",
-        theory: "M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z",
-        tuner: "M12 14l5-5M4 18a9 9 0 1 1 16 0z",
+        practice: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z",
+        theory: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2zM8 7h8M8 11h6",
+        tuner: "M12 14l5-5M4 18a9 9 0 1 1 16 0zM12 20v1",
         voice:
           "M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5 11a7 7 0 0 0 14 0M12 18v3",
-        chords: "M4 6h16M4 12h16M4 18h10",
-        metro: "M8 21l3-18h2l3 18zM12 17l5-8",
+        chords: "M4 5v14M8 5v14M12 5v14M16 5v14M20 5v14M2 9h20M2 15h20",
+        metro: "M8 21l3-18h2l3 18zM12 17l5-8M12 5v6",
         setlist:
           "M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.5A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z",
-        songs: "M4 20h4L19 9l-4-4L4 16zM14 6l4 4",
+        songs: "M9 18V5l12-2v13M9 18a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3zm12-2a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3z",
         profile: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
-        eye: "M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
-        eyeOff:
-          "M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a14.8 14.8 0 0 1-3.2 4.1M6.2 6.2C3.6 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 5.8-1.7",
       };
       const ic = (n) => {
         const s = h("span");
@@ -88,33 +93,6 @@
       };
       let cleanup = () => {};
       const field = (l, el) => h("div", {}, [h("label", {}, l), el]);
-      const passwordControl = (input) => {
-        let visible = false;
-        const icon = () => ic(visible ? "eyeOff" : "eye");
-        const toggle = h(
-          "button",
-          {
-            class: "password-toggle",
-            type: "button",
-            "aria-label": "Show password",
-            title: "Show password",
-            "aria-pressed": "false",
-            onclick: () => {
-              visible = !visible;
-              input.type = visible ? "text" : "password";
-              toggle.setAttribute(
-                "aria-label",
-                visible ? "Hide password" : "Show password",
-              );
-              toggle.title = visible ? "Hide password" : "Show password";
-              toggle.setAttribute("aria-pressed", String(visible));
-              toggle.replaceChildren(icon());
-            },
-          },
-          icon(),
-        );
-        return h("div", { class: "password-control" }, [input, toggle]);
-      };
       const opts = (arr, v) =>
         arr.map((o) => {
           const e = h("option", { value: o }, o);
@@ -127,38 +105,75 @@
         let mode = "login",
           fails = 0,
           lock = 0;
-        const right = h("section"),
-          root = document.getElementById("root");
+        const root = document.getElementById("root"),
+          card = h("section", { class: "auth-card" });
         const draw = () => {
           const em = h("input", {
+            id: "auth-email",
             type: "email",
             autocomplete: "email",
             maxlength: "120",
+            required: "",
+            "aria-label": "Email",
           });
           const pw = h("input", {
+            id: "auth-password",
             type: "password",
             autocomplete:
               mode === "login" ? "current-password" : "new-password",
             maxlength: "72",
+            required: "",
+            "aria-label": "Password",
           });
           const nm = h("input", {
+            id: "auth-name",
             type: "text",
             autocomplete: "name",
             maxlength: "40",
+            required: "",
+            "aria-label": "Display name",
           });
-          const msg = h("p", { class: "msg", role: "alert" });
+          const msg = h("p", {
+            class: "msg auth-message",
+            role: "alert",
+            "aria-live": "polite",
+          });
+          const passwordToggle = h(
+            "button",
+            {
+              class: "password-toggle",
+              type: "button",
+              "aria-label": "Show password",
+              "aria-pressed": "false",
+              onclick: (e) => {
+                const visible = pw.type === "password";
+                pw.type = visible ? "text" : "password";
+                e.currentTarget.textContent = visible ? "Hide" : "Show";
+                e.currentTarget.setAttribute(
+                  "aria-label",
+                  visible ? "Hide password" : "Show password",
+                );
+                e.currentTarget.setAttribute("aria-pressed", String(visible));
+              },
+            },
+            "Show",
+          );
+          const passwordField = h("div", { class: "password-field" }, [
+            pw,
+            passwordToggle,
+          ]);
           const go = h(
             "button",
             {
-              class: "btn",
+              class: "btn auth-submit",
               type: "submit",
-              style: "width:100%;margin-top:1rem",
             },
             mode === "login" ? "Log in" : "Create account",
           );
           const f = h(
             "form",
             {
+              class: "auth-form",
               novalidate: "",
               onsubmit: async (e) => {
                 e.preventDefault();
@@ -181,111 +196,166 @@
                 if (!pw.value)
                   return (msg.textContent = "Enter your password.");
                 go.disabled = true;
-                const r =
-                  mode === "login"
-                    ? await sb.auth.signInWithPassword({
-                        email: E,
-                        password: pw.value,
-                      })
-                    : await sb.auth.signUp({
-                        email: E,
-                        password: pw.value,
-                        options: {
-                          data: { display_name: nm.value.trim().slice(0, 40) },
-                        },
-                      });
-                go.disabled = false;
-                go.disabled = false;
-                if (r.error) {
-                  console.error(r.error);
-                  if (++fails >= 5) {
-                    lock = Date.now() + 30000;
-                    fails = 0;
-                  }
-                  return (msg.textContent =
+                go.textContent =
+                  mode === "login" ? "Signing in..." : "Creating account...";
+                try {
+                  const r =
                     mode === "login"
-                      ? "Incorrect email or password."
-                      : "Sign up failed: " + r.error.message);
-                }
-                if (mode === "signup" && !r.data.session) {
-                }
-                if (mode === "signup" && !r.data.session) {
-                  msg.className = "msg ok";
+                      ? await sb.auth.signInWithPassword({
+                          email: E,
+                          password: pw.value,
+                        })
+                      : await sb.auth.signUp({
+                          email: E,
+                          password: pw.value,
+                          options: {
+                            data: {
+                              display_name: nm.value.trim().slice(0, 40),
+                            },
+                          },
+                        });
+                  if (r.error) {
+                    console.error(r.error);
+                    if (++fails >= 5) {
+                      lock = Date.now() + 30000;
+                      fails = 0;
+                    }
+                    msg.textContent =
+                      mode === "login"
+                        ? "Incorrect email or password."
+                        : "Sign up failed: " + r.error.message;
+                    return;
+                  }
+                  fails = 0;
+                  if (mode === "signup" && !r.data.session) {
+                    msg.className = "msg ok";
+                    msg.textContent =
+                      "Account created. Confirm your email, then log in.";
+                  }
+                } catch (error) {
+                  console.error("BandMate authentication failed:", error);
                   msg.textContent =
-                    "Account created. Confirm your email, then log in.";
+                    "Unable to connect right now. Check your connection and try again.";
+                } finally {
+                  go.disabled = false;
+                  go.textContent =
+                    mode === "login" ? "Log in" : "Create account";
                 }
               },
             },
             [
-              mode === "signup" && field("Display name", nm),
-              field("Email", em),
-              field("Password", passwordControl(pw)),
+              mode === "signup" &&
+                h("div", { class: "auth-field" }, [
+                  h("label", { for: "auth-name" }, "Display name"),
+                  nm,
+                ]),
+              h("div", { class: "auth-field" }, [
+                h("label", { for: "auth-email" }, "Email"),
+                em,
+              ]),
+              h("div", { class: "auth-field" }, [
+                h("label", { for: "auth-password" }, "Password"),
+                passwordField,
+              ]),
               go,
               msg,
               mode === "login" &&
                 h(
                   "button",
                   {
-                    class: "link",
+                    class: "link auth-forgot",
                     type: "button",
-                    onclick: async () => {
+                    onclick: async (e) => {
+                      msg.className = "msg";
+                      msg.textContent = "";
                       const E = em.value.trim().toLowerCase();
                       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(E))
                         return (msg.textContent = "Enter your email first.");
-                      if (configured)
-                        await sb.auth.resetPasswordForEmail(E, {
+                      if (!configured)
+                        return (msg.textContent =
+                          "Backend not connected. Add your Supabase URL and anon key at the top of the script.");
+                      const reset = e.currentTarget;
+                      reset.disabled = true;
+                      try {
+                        const r = await sb.auth.resetPasswordForEmail(E, {
                           redirectTo: location.origin + location.pathname,
                         });
-                      msg.className = "msg ok";
-                      msg.textContent =
-                        "If that email has an account, a reset link is on its way.";
+                        if (r.error) {
+                          console.error(r.error);
+                          msg.textContent =
+                            "Could not send a reset link. Please try again.";
+                          return;
+                        }
+                        msg.className = "msg ok";
+                        msg.textContent =
+                          "If that email has an account, a reset link is on its way.";
+                      } catch (error) {
+                        console.error("BandMate password reset failed:", error);
+                        msg.textContent =
+                          "Unable to send a reset link right now. Try again shortly.";
+                      } finally {
+                        reset.disabled = false;
+                      }
                     },
                   },
                   "Forgot password?",
                 ),
             ],
           );
-          right.replaceChildren(
-            h("div", { style: "width:100%;max-width:360px" }, [
-              h(
-                "div",
-                { class: "tabs", role: "tablist" },
-                [
-                  ["login", "Log in"],
-                  ["signup", "Sign up"],
-                ].map(([m, l]) =>
-                  h(
-                    "button",
-                    {
-                      role: "tab",
-                      class: mode === m ? "on" : "",
-                      onclick: () => {
-                        mode = m;
-                        draw();
-                      },
+          card.replaceChildren(
+            h(
+              "div",
+              {
+                class: "tabs",
+                role: "tablist",
+                "aria-label": "Account access",
+              },
+              [
+                ["login", "Log in"],
+                ["signup", "Register"],
+              ].map(([m, l]) =>
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    role: "tab",
+                    "aria-selected": String(mode === m),
+                    class: mode === m ? "on" : "",
+                    onclick: () => {
+                      mode = m;
+                      draw();
                     },
-                    l,
-                  ),
+                  },
+                  l,
                 ),
               ),
-              f,
-            ]),
+            ),
+            h(
+              "h1",
+              { class: "auth-title" },
+              mode === "login" ? "Welcome back" : "Create your account",
+            ),
+            h(
+              "p",
+              { class: "sub auth-intro" },
+              mode === "login"
+                ? "Log in to continue your music practice."
+                : "Join BandMate and keep your music practice in tune.",
+            ),
+            f,
           );
         };
-        draw();
         root.replaceChildren(
-          h("div", { class: "auth" }, [
-            h("aside", {}, [
-              h("h2", {}, "Learn, tune and play in one place."),
-              h(
-                "p",
-                {},
-                "Theory lessons, a pitch-accurate tuner, chord sheets and a practice log that follows you across devices.",
-              ),
+          h("main", { class: "auth" }, [
+            h("header", { class: "auth-brand" }, [
+              h("span", { class: "auth-logo", "aria-hidden": "true" }, "♫"),
+              h("span", {}, "BandMate"),
             ]),
-            right,
+            h("p", { class: "auth-tagline" }, "Learn, tune and play in one place."),
+            card,
           ]),
         );
+        draw();
       }
 
       /* ============ SHELL ============ */
@@ -294,39 +364,116 @@
         theory: ["Theory", theoryView],
         tuner: ["Tuner", tunerView],
         voice: ["Voice trainer", voiceView],
-        chords: ["Chords", chordsView],
+        chords: ["Chords Library", chordsView],
         metro: ["Metronome", metroView],
         setlist: ["Setlist", setlistView],
-        songs: ["Add Songs", songsView],
+        songs: ["Song List", songsView],
         profile: ["Profile", profileView],
       };
       function shell() {
         const main = h("main"),
-          nav = h("nav", {}, h("div", { class: "brand" }, "BandMate"));
+          nav = h(
+            "nav",
+            { "aria-label": "Main navigation" },
+            [
+              h("div", { class: "brand" }, "BandMate"),
+              h("div", { class: "mobile-nav-bar" }, [
+                h("span", { class: "mobile-nav-brand" }, "BandMate"),
+                h(
+                  "button",
+                  {
+                    class: "mobile-nav-toggle",
+                    type: "button",
+                    "aria-label": "Open navigation menu",
+                    "aria-expanded": "false",
+                    "aria-controls": "main-nav-links",
+                    onclick: (e) => {
+                      const expanded = nav.classList.toggle("open");
+                      e.currentTarget.setAttribute(
+                        "aria-expanded",
+                        String(expanded),
+                      );
+                      e.currentTarget.setAttribute(
+                        "aria-label",
+                        expanded ? "Close navigation menu" : "Open navigation menu",
+                      );
+                    },
+                  },
+                  [
+                    h("span", { class: "burger-lines", "aria-hidden": "true" }, [
+                      h("span"),
+                      h("span"),
+                      h("span"),
+                    ]),
+                    h("span", { class: "mobile-nav-toggle-label" }, "Menu"),
+                  ],
+                ),
+              ]),
+              h("div", { class: "nav-links", id: "main-nav-links" }),
+            ],
+          );
+        const navLinks = nav.querySelector(".nav-links"),
+          mobileToggle = nav.querySelector(".mobile-nav-toggle");
         const go = (k) => {
           cleanup();
           cleanup = () => {};
+          nav.classList.remove("open");
+          mobileToggle.setAttribute("aria-expanded", "false");
+          mobileToggle.setAttribute("aria-label", "Open navigation menu");
           nav
             .querySelectorAll("a")
-            .forEach((a) => a.classList.toggle("on", a.dataset.k === k));
+            .forEach((a) => {
+              const active = a.dataset.k === k;
+              a.classList.toggle("on", active);
+              if (active) {
+                a.setAttribute("aria-current", "page");
+                nav.querySelector(".mobile-nav-brand").textContent =
+                  VIEWS[k][0];
+              } else a.removeAttribute("aria-current");
+            });
           main.replaceChildren(VIEWS[k][1]());
           scrollTo(0, 0);
         };
         for (const k in VIEWS)
-          nav.append(
+          navLinks.append(
             h(
               "a",
               {
                 "data-k": k,
+                "aria-label": VIEWS[k][0],
                 href: "#",
                 onclick: (e) => {
                   e.preventDefault();
                   go(k);
                 },
               },
-              [ic(k), VIEWS[k][0]],
+              [
+                ic(k),
+                h(
+                  "span",
+                  {
+                    class: "nav-label",
+                    "data-short": {
+                      voice: "Voice",
+                      chords: "Chords",
+                      metro: "Metro",
+                      songs: "Songs",
+                    }[k] || VIEWS[k][0],
+                    "aria-hidden": "true",
+                  },
+                  VIEWS[k][0],
+                ),
+              ],
             ),
           );
+        nav.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && nav.classList.contains("open")) {
+            nav.classList.remove("open");
+            mobileToggle.setAttribute("aria-expanded", "false");
+            mobileToggle.setAttribute("aria-label", "Open navigation menu");
+            mobileToggle.focus();
+          }
+        });
         document
           .getElementById("root")
           .replaceChildren(h("div", { class: "app" }, [nav, main]));
@@ -489,7 +636,12 @@
               [total + " min", "Total practice"],
               [streak + " days", "Current streak"],
               [S.logs.length, "Sessions logged"],
-              [S.prog.size + "/10", "Lessons completed"],
+              [
+                L.filter((lesson) => S.prog.has(lesson.id)).length +
+                  "/" +
+                  L.length,
+                "Lessons completed",
+              ],
             ].map(([a, b]) =>
               h("div", { class: "card stat" }, [
                 h("b", {}, String(a)),
@@ -560,195 +712,193 @@
       }
 
       /* ============ 3. THEORY ============ */
+      const lessonData = (
+        id, level, title, explanation, terms, steps, piano, guitar, apply,
+        mistake, question, answers, correct, reason,
+      ) => ({
+        id, level, title, explanation, terms, steps, piano, guitar, apply,
+        mistake, question, answers, correct, reason,
+      });
       const L = [
-        [
-          "The musical alphabet",
-          "Music uses seven letters, A to G, then starts again at A. Two notes with the same letter, one cycle apart, are an octave apart.",
-          "Which note comes after G?",
-          ["H", "A", "C", "Z"],
-          1,
-        ],
-        [
-          "The staff",
-          "Notes are written on a staff of five lines and four spaces. The higher a note sits, the higher it sounds.",
-          "How many lines does a staff have?",
-          ["3", "4", "5", "6"],
-          2,
-        ],
-        [
-          "Treble clef",
-          "The lines of the treble clef are E, G, B, D, F. The spaces are F, A, C, E.",
-          "What do the treble clef spaces spell?",
-          ["BEAD", "FACE", "CAGE", "DEAF"],
-          1,
-        ],
-        [
-          "Bass clef",
-          "The lines of the bass clef are G, B, D, F, A. The spaces are A, C, E, G. Low instruments read from it.",
-          "Which instrument reads bass clef?",
-          ["Flute", "Bass guitar", "Violin", "Piccolo"],
-          1,
-        ],
-        [
-          "Note values",
-          "A whole note lasts 4 beats, a half note 2, a quarter note 1 and an eighth note half a beat.",
-          "How many beats is a half note?",
-          ["1", "2", "3", "4"],
-          1,
-        ],
-        [
-          "Time signatures",
-          "The top number is how many beats fit in a measure. The bottom number says which note gets one beat.",
-          "How many beats are in a measure of 4/4?",
-          ["2", "3", "4", "8"],
-          2,
-        ],
-        [
-          "Sharps and flats",
-          "A sharp raises a note by one semitone and a flat lowers it by one. Some notes share a pitch under two names.",
-          "Which note is the same pitch as C sharp?",
-          ["D flat", "D", "B", "C flat"],
-          0,
-        ],
-        [
-          "Major scale",
-          "A major scale climbs in the step pattern whole, whole, half, whole, whole, whole, half. C major uses only the white piano keys.",
-          "How many different notes are in a major scale?",
-          ["5", "7", "8", "12"],
-          1,
-        ],
-        [
-          "Chords",
-          "A chord is three or more notes played together. A major chord stacks a major third and a fifth on the root; a minor chord lowers the third.",
-          "Which notes make a C major chord?",
-          ["C E G", "C E flat G", "C F G", "D F A"],
-          0,
-        ],
-        [
-          "Tempo and rhythm",
-          "Tempo is measured in beats per minute (BPM). Practice with a metronome to keep your pulse steady.",
-          "What does 60 BPM mean?",
-          [
-            "One beat per second",
-            "Two beats per second",
-            "One beat every two seconds",
-            "Sixty measures",
-          ],
-          0,
-        ],
+        lessonData(0,"Beginner","Musical alphabet and octaves","Pitch names cycle through A, B, C, D, E, F, and G; after G the sequence returns to A in the next octave. An octave is the distance between one note and the next note with the same letter. The higher note vibrates twice as fast, so the two pitches sound closely related.","Pitch: how high or low a sound is. Octave: a 12-semitone interval between matching note names.","1. Say the letters A through G. 2. Continue with A again. 3. Compare C4 and C5: both are C, one octave apart.","On a keyboard, locate middle C, then the next C to its right; count 12 keys including black keys to reach the octave.","On a guitar, play the open high E string, then fret 12 on that string: both are E, one octave apart.","Use octave shapes to move a melody to a comfortable register without changing its identity.","Counting only white keys misses black keys; an octave is 12 semitones, not seven piano keys.","Which note name follows G in the musical alphabet?",["H","A","C","F"],1,"The seven letter names repeat, so A follows G. The pitch is in the next register when the sequence rolls over."),
+        lessonData(1,"Beginner","The musical staff","A staff is five horizontal lines with four spaces. Notes move to the next letter as they alternate line-space-line. Clefs assign specific pitches to those positions; ledger lines extend the staff when notes go higher or lower.","Staff: the five-line notation grid. Ledger line: a short added line beyond the staff.","1. Count five lines from bottom to top. 2. Count the spaces between them. 3. Follow adjacent line/space positions to read letter steps.","Draw a five-line staff and mark middle C on a ledger line below the treble staff.","Tab shows strings and fret numbers, while standard guitar notation uses the staff; connect a written note to its string/fret using a chart.","Read written melodies and communicate parts with musicians who use standard notation.","A staff position alone does not determine a pitch; first identify the clef.","How many lines are in a standard musical staff?",["Four","Five","Six","Seven"],1,"A standard staff has five lines and four spaces. Clefs determine which pitches those positions represent."),
+        lessonData(2,"Beginner","Treble clef","The treble clef curls around the second staff line, identifying that line as G4. From the bottom, the lines spell E-G-B-D-F and the spaces spell F-A-C-E. Treble clef is common for voice, guitar, violin, and piano's right hand.","Treble clef: the G clef. Staff line G: the second line from the bottom.","1. Find the second line. 2. Label it G. 3. Move one staff position at a time: line E, space F, line G, space A, line B.","Treble-clef piano music commonly carries the right-hand melody; middle C sits one ledger line below the staff.","Guitar notation conventionally sounds an octave below its written treble-clef pitch; guitar tabs provide a direct fret map.","Use FACE for spaces and Every Good Boy Does Fine for lines, then read a simple C-major melody.","Memorizing a mnemonic without checking bottom-to-top order can reverse the note names.","What note is on the second line from the bottom in treble clef?",["E","G","B","D"],1,"Treble clef is the G clef: its curl circles the second line, which is G."),
+        lessonData(3,"Beginner","Bass clef","Bass clef places F3 on the second line from the top. Its lines from bottom to top are G-B-D-F-A; spaces are A-C-E-G. It is used for low voices and instruments such as bass guitar, cello, and piano's left hand.","Bass clef: the F clef. Anchor line: the fourth staff line from the bottom, F.","1. Find the two dots around the fourth line. 2. Name it F. 3. Read adjacent positions in letter order.","Piano left-hand bass notes commonly use bass clef; the space above middle C's ledger line is an easy reference.","Bass guitar commonly uses bass clef in standard notation; tablature separately identifies the string and fret.","Read bass lines and coordinate root notes with a chord progression.","Confusing the bass-clef F line with treble-clef G shifts every note by a third.","Which note sits between the two dots of the bass clef?",["A","D","F","G"],2,"The bass-clef dots surround the F line, making it the clef's pitch anchor."),
+        lessonData(4,"Beginner","Notes and rests","Note shapes show how long to sound a pitch; rests show how long to remain silent. In common 4/4, a whole note lasts four beats, a half two, a quarter one, an eighth half a beat, and a sixteenth a quarter beat. Dots add half the note's original value.","Duration: time a note or rest lasts. Dot: adds half the undotted duration. Rest: measured silence.","1. Set a steady quarter-note pulse. 2. Count a half note across beats 1-2. 3. Fit two eighth notes inside one beat. 4. Count rests just as carefully as notes.","Hold a C for four metronome clicks as a whole note; play two C quarter notes for two separate beats.","Strum one chord on beat 1 and let it ring for a half note; mute the strings during a rest to make silence precise.","Read rhythms accurately and make ensemble starts and stops together.","A rest is not optional empty space; stopping a ringing string may be necessary to produce it.","How many quarter-note beats does a half note last?",["One","Two","Three","Four"],1,"A half note is half of a four-beat whole note, so it lasts two quarter-note beats."),
+        lessonData(5,"Beginner","Time signatures","A time signature appears after the clef and key signature. Its upper number gives the number of denominator-note units per measure; the lower number names the note value (4 means a quarter note). In 6/8, six eighth notes are commonly grouped as two dotted-quarter pulses.","Numerator: beats or beat-units per bar. Denominator: note value used as the unit. Meter: recurring grouping of beats.","1. Read the top number. 2. Translate the bottom number: 4=quarter, 8=eighth. 3. Count a full measure, then notice natural accents.","In 3/4, play a bass note on beat 1 and light chord tones on beats 2 and 3.","Count 6/8 as ONE-two-three FOUR-five-six, often two large pulses; avoid automatically accenting all six eighth notes equally.","Recognize the feel of waltzes, marches, compound-meter ballads, and pop grooves.","The bottom number does not always mean the beat felt most strongly; compound meters group smaller units.","In 3/4, how many quarter-note beats are in each measure?",["Two","Three","Four","Six"],1,"The numerator is three and the denominator indicates quarter notes, so each measure contains three quarter-note beats."),
+        lessonData(10,"Beginner","Measures and bar lines","Bar lines divide written music into measures so performers can track beats and coordinate. A double bar often marks a section boundary; a final double bar ends a piece. Pick-up notes begin before the first complete measure and are balanced later.","Measure/bar: a meter-sized group of beats. Bar line: vertical boundary. Pick-up: anacrusis before beat one.","1. Choose a meter such as 4/4. 2. Count four quarter-note beats. 3. Draw a bar line and restart the count at one.","Write four quarter notes in one 4/4 measure, then use a double bar to mark the end of an eight-bar phrase.","Count chord changes by bar: play G for two bars, C for one, and D for one without losing the beat-one reset.","Use bars to rehearse loops, communicate song form, and line up chord changes.","A chord change does not automatically create a new measure; the meter controls bar length.","In 4/4, how many quarter-note beats fit between regular bar lines?",["Two","Three","Four","Eight"],2,"A 4/4 measure contains four quarter-note beats before the next bar line."),
+        lessonData(6,"Beginner","Sharps, flats, and naturals","A sharp raises a written note by one semitone, a flat lowers it by one, and a natural cancels an earlier accidental for the rest of that measure. Enharmonic spellings such as C-sharp and D-flat can share a piano key while serving different harmonic roles.","Accidental: a symbol that alters a pitch. Enharmonic: different note names for the same sounding pitch in equal temperament.","1. Find C on a keyboard. 2. Move one key to the right for C-sharp. 3. Name that same key D-flat. 4. Use a natural sign to cancel a prior alteration.","C-sharp and D-flat use the same black key on a standard keyboard; spell the note to match the key and chord context.","Move a fretted note one fret higher for a sharp or one fret lower for a flat; the spelling still depends on musical context.","Read and write melodies that fit key signatures and chord functions.","C-to-C-sharp is a semitone, not a whole tone; E-to-F and B-to-C have no black key between them.","Which pitch is enharmonic to C-sharp?",["D-flat","D","B","C-flat"],0,"C-sharp and D-flat are two spellings for the same piano key in equal temperament."),
+        lessonData(11,"Beginner","Whole steps and half steps","A half step is the smallest standard interval between adjacent piano keys; a whole step equals two half steps. The natural half steps are E-F and B-C. On guitar, one fret equals one half step, making intervals easy to visualize.","Semitone/half step: one adjacent key or fret. Whole tone: two semitones.","1. Start on C. 2. Move to C-sharp for a half step. 3. Move two semitones to D for a whole step. 4. Repeat from different starting notes.","Play C-C-sharp-D to hear half-step then whole-step movement.","On one string, play fret 3 to fret 4 for a half step and fret 3 to fret 5 for a whole step.","Build scales, identify intervals by ear, and understand fretboard distances.","A whole step is not always two white piano keys; black keys count as keys too.","How many half steps make one whole step?",["One","Two","Three","Four"],1,"A whole step is two semitones, or two adjacent one-semitone moves."),
+        lessonData(12,"Beginner","The chromatic scale","The chromatic scale contains all twelve pitch classes in an octave, each a semitone apart. It can ascend with sharps or flats according to spelling context; it is a useful map of pitch rather than a single major/minor key.","Pitch class: note identity independent of octave. Chromatic: moving in semitones.","1. Choose C. 2. Ascend each key/fret one semitone. 3. Stop at the next C after twelve semitones.","Play every key, white and black, from C up to the next C: there are twelve distinct pitch classes before repetition.","Walk up one string fret by fret from fret 0 through fret 12; the twelfth fret repeats the open-string pitch class.","Warm up finger coordination and locate any pitch on an instrument.","The scale has twelve unique pitch classes, not thirteen; the top C repeats the starting class.","How many distinct pitch classes are in one chromatic octave?",["Seven","Ten","Twelve","Fourteen"],2,"There are twelve semitone steps/pitch classes before the starting note repeats at the octave."),
+        lessonData(7,"Beginner","Major scales","A major scale has seven different scale degrees and follows whole-whole-half-whole-whole-whole-half. The final tonic repeats the first note an octave higher. This pattern gives major keys their characteristic interval structure.","Tonic: home note/degree 1. Scale degree: a note's numbered place in the scale. W=whole step; H=half step.","1. Start on a tonic. 2. Apply W-W-H-W-W-W-H. 3. Check that the last step returns to the tonic octave.","C major is C-D-E-F-G-A-B-C on white keys. For G major, raise F to F-sharp to preserve the pattern.","Play the G-major fingering across strings and include F-sharp; fretboard shapes can be moved only if the tuning/root is accounted for.","Create melodies and identify which notes belong naturally to a major key.","Starting the pattern on a different note without changing the step pattern produces a different key, not C major.","How many different notes occur in a seven-note major scale before the octave?",["Five","Seven","Eight","Twelve"],1,"A seven-note scale uses seven distinct degrees; the eighth note repeats the tonic at the octave."),
+        lessonData(13,"Beginner","Minor scales","Natural minor follows W-H-W-W-H-W-W and has a darker interval pattern than major. Harmonic minor raises scale degree 7; melodic minor traditionally raises 6 and 7 ascending and returns to natural minor descending. These forms serve different melodic and harmonic needs.","Natural minor: Aeolian pattern. Leading tone: raised seventh that pulls strongly to tonic.","1. Build A natural minor using white keys A-B-C-D-E-F-G-A. 2. Raise G to G-sharp for harmonic minor. 3. Compare the sound and resolution.","Play A natural minor on the piano's white keys; raise G to G-sharp to hear the leading tone in harmonic minor.","Use an A-minor pentatonic box as a starting point, then add F and G for natural minor; use G-sharp deliberately over E major.","Choose a minor color for melodies and understand why V chords often become major in minor keys.","Natural, harmonic, and melodic minor are related forms, not interchangeable names for one fixed note set.","Which scale degree is raised in harmonic minor compared with natural minor?",["Third","Fourth","Sixth","Seventh"],3,"Harmonic minor raises degree 7 to create a leading tone that resolves up to the tonic."),
+        lessonData(9,"Beginner","Tempo, rhythm, and pulse","Tempo describes the speed of the underlying beat, measured in beats per minute (BPM). Rhythm organizes note and rest durations against that pulse; subdivision divides a beat into equal smaller parts. A steady pulse can remain constant while rhythms vary.","Pulse: evenly spaced beat. BPM: beats per minute. Subdivision: smaller equal divisions of a beat.","1. Set 60 BPM and tap once per click. 2. Speak two even syllables per beat. 3. Alternate quarter notes and eighth notes without changing pulse.","Set the metronome to 60 BPM and play a C chord once per click, then twice evenly per click.","Strum down on beats and alternate down-up eighth notes while keeping the foot pulse steady.","Practice with a metronome, diagnose rushing/dragging, and make groove repeatable.","Changing note density does not require changing tempo; keep subdivisions even.","At 60 BPM, how much time passes between beats?",["Half a second","One second","Two seconds","One minute"],1,"60 beats per minute means 60 beats in 60 seconds, or one beat each second."),
+        lessonData(14,"Intermediate","Scale degrees","Scale degrees label notes by position relative to a tonic, using numbers 1-7 and functional names such as tonic, supertonic, mediant, subdominant, dominant, submediant, and leading tone. The same degree number works in any key.","Degree: position in a scale. Roman numeral: chord built on that scale degree. Dominant: degree 5 with strong pull toward tonic.","1. Name the key and tonic. 2. Number each scale note upward. 3. Sing degrees 1-3-5, then resolve 7 to 1.","In C major, D is degree 2 and G is degree 5; transpose the same numbered melody to another key.","In G major, map the fifth-degree D note across the fretboard and resolve F-sharp (degree 7) to G.","Discuss melody and harmony without relying on fixed note names.","Scale-degree numbers are relative to the chosen tonic, not absolute pitch names.","What is the fifth scale degree called in major-key harmony?",["Tonic","Mediant","Dominant","Leading tone"],2,"Degree 5 is the dominant; it commonly creates tension that resolves to degree 1."),
+        lessonData(15,"Intermediate","Key signatures","A key signature places sharps or flats after the clef and applies them throughout a piece unless canceled. Sharps appear in the order F-C-G-D-A-E-B; flats reverse that order. Major and relative-minor keys share a signature.","Key signature: persistent set of accidentals. Circle of fifths: map of closely related keys and their signatures.","1. Count signature sharps/flats. 2. Use their order. 3. Identify the major key from the last sharp up a semitone or the second-to-last flat.","One sharp means G major or E minor; check the tonal center and cadences to distinguish them.","A guitarist may use familiar open-string shapes but still account for every signature accidental in written notation.","Read scores faster and choose a key comfortable for voice and instrument.","A key signature suggests a key but does not by itself prove the tonal center.","In a sharp key signature, which note is always sharpened first?",["C","F","G","B"],1,"The order of sharps begins F-C-G-D-A-E-B, so F-sharp is first."),
+        lessonData(16,"Intermediate","Circle of fifths","Moving clockwise around the circle of fifths adds one sharp (or removes one flat); moving counterclockwise adds a flat. Neighboring keys share most notes, while relative major/minor pairs share a signature. The circle is a relationship map, not a required progression.","Perfect fifth: seven semitones. Relative keys: major/minor keys sharing a signature.","1. Start at C. 2. Move clockwise by fifths: G, D, A. 3. Add one sharp each time. 4. Move counterclockwise to find flat keys.","C major has no sharps; G major adds F-sharp; D major adds C-sharp as well.","Use fifth movement to locate a chord root up seven frets or across strings, then compare the key's accidentals.","Plan transpositions, identify likely neighboring chords, and learn common cycle-of-fifths progressions.","The circle helps organize relationships but a song can move outside neighboring keys.","Which key is one perfect fifth above C major?",["F major","G major","D major","A minor"],1,"G is a perfect fifth above C and is the next clockwise key on the circle."),
+        lessonData(17,"Intermediate","Intervals","An interval measures the distance between two pitches. Count letter names for interval number, then semitones for quality (major, minor, perfect, augmented, diminished). Inversions sum to nine for interval numbers and to an octave in semitones.","Interval number: generic letter distance. Quality: exact semitone size. Inversion: swapping the notes' order/register.","1. Count letters inclusively. 2. Count semitones. 3. Name both number and quality, such as a major third (4 semitones).","C to E is a major third; C to E-flat is a minor third. Compare each by playing both notes together and in sequence.","On one string, fret 0 to 4 for a major third and 0 to 3 for a minor third.","Recognize melodies by ear and build chords from root intervals.","Counting only frets gives size but not spelling; C-to-D-sharp and C-to-E-flat sound alike but name different interval numbers.","How many semitones are in a perfect fifth?",["5","7","9","12"],1,"A perfect fifth spans seven semitones, such as C up to G."),
+        lessonData(18,"Intermediate","Major and minor triads","A triad stacks three chord tones in thirds: root, third, and fifth. Major triads use 0-4-7 semitones; minor triads use 0-3-7. The third determines the major/minor quality while the fifth remains perfect.","Root: chord's naming pitch. Third: quality-defining chord tone. Triad: three-note chord.","1. Choose root C. 2. Add E (four semitones) and G (seven) for C major. 3. Lower E to E-flat for C minor.","Play C-E-G for C major and C-E-flat-G for C minor; hear the single-note difference.","C major can be x-3-2-0-1-0; C minor can be x-3-1-0-1-3 in a playable voicing, or use a movable shape.","Harmonize melodies and change emotional color with clear voice-leading.","A minor triad does not lower every note; relative to major, only the third changes.","Which notes form an A-minor triad?",["A-C-E","A-C-sharp-E","A-D-E","A-C-F"],0,"A minor contains root A, minor third C, and perfect fifth E."),
+        lessonData(19,"Intermediate","Diminished and augmented chords","Diminished triads stack two minor thirds (0-3-6), creating a tense, symmetrical sound. Augmented triads stack two major thirds (0-4-8), producing a widened, unresolved sound. Both can act as passing or leading harmonies.","Diminished triad: root-minor-third-diminished-fifth. Augmented triad: root-major-third-augmented-fifth.","1. From C, add E-flat then G-flat for C diminished. 2. For C augmented use E and G-sharp. 3. Resolve each to a stable nearby chord.","Compare C-E-flat-G-flat with C-E-G-sharp; move one or two notes by semitone into a neighboring triad.","Use B-diminished (B-D-F) to lead into C; its notes resolve by small steps to C-E-G.","Add tension to transitions and create chromatic approaches to a destination chord.","Diminished and augmented are not simply minor and major; their fifths are altered too.","What intervals form a diminished triad?",["Major third + perfect fifth","Two minor thirds","Two major thirds","Perfect fourth + major third"],1,"A diminished triad stacks two minor thirds, giving a root, minor third, and diminished fifth."),
+        lessonData(8,"Intermediate","Chord inversions","An inversion changes which chord tone is the lowest note while keeping the same chord tones. Root position has the root in the bass; first inversion places the third there; second inversion places the fifth there. Slash-chord notation names the chord and bass note.","Voicing: arrangement/register of chord tones. Inversion: chord tone other than root in bass.","1. Play C-E-G. 2. Move C above the other notes for E-G-C. 3. Move E above them for G-C-E. 4. Keep chord identity while bass changes.","Play C-E-G, E-G-C, and G-C-E with the left hand; notice the smooth upper-voice movement.","Choose C/G to put G in the bass, or use a C/E shape for a smoother bass line between C and F.","Keep chord progressions connected and support a desired bass melody.","An inversion is not a new chord quality; the same chord tones remain present.","What is the bass note of a C-major first inversion?",["C","E","G","B"],1,"First inversion places the triad's third, E, in the bass."),
+        lessonData(20,"Intermediate","Chord progressions","A progression is a sequence of chords whose roots and qualities create motion and a sense of arrival. In major keys, I, IV, and V are common pillars; ii and vi add pre-dominant or relative-minor colors. Function, rhythm, and melody shape how a progression feels.","Progression: ordered chord sequence. Tonic: home function. Predominant: leads toward dominant. Cadence: phrase-ending harmonic motion.","1. Pick a key. 2. Build I-IV-V chords. 3. End V-I. 4. Add rhythm and melody; listen for the cadence.","In C, play C-F-G-C; use inversions to keep the notes close between chords.","In G, try G-C-D-G with open shapes; strum four steady beats per chord before varying rhythm.","Write songs, recognize common loops, and make phrase endings feel intentional.","Roman numerals describe key-relative functions; the same chord name has different roles in another key.","In C major, which chord is the dominant triad?",["C major","D minor","F major","G major"],3,"G is scale degree 5 in C major, so G major is the V/dominant chord."),
+        lessonData(21,"Intermediate","Roman numeral analysis","Roman numerals label chords by scale degree: uppercase means major, lowercase means minor, and a diminished symbol marks diminished quality. In C major, I=C, ii=Dm, iii=Em, IV=F, V=G, vi=Am, vii°=Bdim. Numerals show function across keys.","Roman numeral: key-relative chord label. Upper/lower case: chord quality. °: diminished triad.","1. Identify the key. 2. Number its scale notes. 3. Build a triad on each note. 4. Mark quality with case and symbols.","Analyze C-Am-F-G as I-vi-IV-V in C, then transpose to another key with the same numerals.","A capo can preserve familiar shapes while the sounding key changes; name the concert-key numerals, not just finger shapes.","Compare songs independent of key and transpose arrangements consistently.","Do not use uppercase for every chord; quality is encoded in the numeral's case.","In a major key, what quality is the ii chord?",["Major","Minor","Augmented","Dominant seventh"],1,"The diatonic chord on degree 2 in a major key is a minor triad, written ii."),
+        lessonData(22,"Intermediate","Seventh chords","A seventh chord adds a fourth chord tone, a seventh above the root. Common types include major seventh (1-3-5-7), dominant seventh (1-3-5-b7), minor seventh (1-b3-5-b7), and half-diminished. The added seventh often increases harmonic pull or color.","Dominant seventh: major triad plus minor seventh. Major seventh: major triad plus major seventh.","1. Build a triad. 2. Add the seventh from the scale. 3. Compare b7 and natural 7. 4. Resolve G7 to C.","Play G-B-D-F for G7, then resolve to C-E-G; the F tends downward to E.","A compact G7 voicing is 320001; release the tension into a C shape with minimal finger motion.","Color accompaniment and strengthen dominant-to-tonic movement.","A chord labeled G7 is not G major plus a major seventh; that chord is Gmaj7.","Which added note turns G major into G7?",["F","F-sharp","G","E-flat"],0,"G7 is G-B-D-F: the chord adds a minor seventh, F, above the root."),
+        lessonData(23,"Intermediate","Suspended chords","A suspended chord replaces the third with a second or fourth, avoiding a clear major/minor quality. Sus2 uses 1-2-5 and sus4 uses 1-4-5. The suspended tone often resolves to the third, but it can also remain as a stable color.","Suspension: a chord tone replacing the third. sus2: root-second-fifth. sus4: root-fourth-fifth.","1. Play a major triad. 2. Replace its third with the second or fourth. 3. Resolve the suspension to the third and compare.","On piano, play D-G-A then move G to F-sharp for D major; try D-E-A as Dsus2.","Asus2 is x02200 and Asus4 is x02230; alternate with A major to hear the suspended note resolve.","Create open, floating textures and embellish a held chord without changing the bass.","Sus chords are not automatically minor; the missing third is what makes quality ambiguous.","Which note replaces the third in a sus4 chord?",["Second","Fourth","Fifth","Seventh"],1,"A sus4 chord replaces the third with scale degree four, which may resolve down to the third."),
+        lessonData(24,"Intermediate","Extended chords","Extensions add notes above a seventh chord: ninth, eleventh, and thirteenth. They are usually understood by stacking thirds and may omit or alter tones for playability and clarity. Extensions add color without necessarily changing a chord's basic function.","Extension: chord tone above the seventh. Altered extension: raised/lowered ninth, fifth, or other color tone.","1. Start with a seventh chord. 2. Continue the scale in thirds to 9, 11, or 13. 3. Choose a voicing that leaves defining tones audible.","Try Cmaj9 as C-E-G-B-D; omit G if needed while retaining the third and seventh.","Use a compact Cadd9 (x32033) for color; remember add9 is not identical to a full C9 dominant chord.","Expand jazz/pop harmony and create richer piano or guitar arrangements.","A 9 chord normally implies a seventh; add9 explicitly adds the ninth to a triad.","What is the ninth in a C-based extended chord?",["D","E","F","A"],0,"D is the ninth above C when the scale is continued past the octave."),
+        lessonData(25,"Intermediate","Relative major and minor","Relative major and minor share a key signature and pitch collection but have different tonic centers. A relative minor begins on scale degree 6 of its major; a relative major lies a minor third above the minor tonic. Harmony and melody establish which note feels like home.","Relative minor: minor key sharing a major key's signature. Tonic center: perceived point of rest.","1. Write a major scale. 2. Begin on degree 6 for its natural relative minor. 3. Compare cadences to identify each tonic.","C major and A natural minor use the same white keys; end phrases on C or A to make different centers clear.","C major and A minor share open-chord resources; emphasize G-to-C for C or E-to-Am for A minor.","Transpose melodies and understand why a shared signature can support different moods.","A shared key signature does not make two keys identical; tonic and harmonic behavior differ.","What is the relative minor of C major?",["D minor","E minor","A minor","G minor"],2,"A is the sixth degree of C major, so A minor is its relative minor."),
+        lessonData(26,"Intermediate","Harmonic minor and melodic minor","Harmonic minor raises the seventh of natural minor to create a leading tone and a major V chord; the resulting augmented second between degrees 6 and 7 is distinctive. Classical melodic minor raises 6 and 7 ascending to smooth the line, then often descends as natural minor; jazz melodic minor keeps raised forms both ways.","Leading tone: semitone below tonic. Augmented second: three-semitone interval in harmonic minor.","1. Play A natural minor. 2. Raise G to G-sharp for harmonic minor. 3. Raise F too while ascending for classical melodic minor. 4. Listen to the different resolutions.","A harmonic minor uses A-B-C-D-E-F-G-sharp-A; E major (E-G-sharp-B) now supplies a strong V.","Play G-sharp on the third fret of the high E string in an A-minor phrase, then resolve it to open A.","Choose a minor-key dominant sound and craft smoother melodic lines.","Raising the seventh changes the scale spelling and chord qualities; do not assume every minor-key V is minor.","What note changes from A natural minor to A harmonic minor?",["F to F-sharp","G to G-sharp","C to C-sharp","E to E-flat"],1,"Harmonic minor raises its seventh degree; in A minor that changes G to G-sharp."),
+        lessonData(27,"Advanced","Voice leading","Voice leading is the movement of individual notes from one chord to the next. Good voice leading preserves common tones and moves other voices by the smallest practical interval while maintaining musical direction. Chord labels alone do not describe the smoothness of a progression.","Voice: one melodic line within a chord texture. Common tone: pitch shared by adjacent chords. Contrary motion: voices move in opposite directions.","1. Write the chord tones. 2. Keep shared notes. 3. Move remaining voices to the nearest chord tone. 4. Check range and crossing.","Move from C (C-E-G) to Am (A-C-E): keep C and E, move G to A.","Use C to Am with a shared C and E; select nearby inversions rather than jumping to distant open shapes.","Arrange piano/guitar accompaniment that supports a singer and avoids awkward leaps.","Root-position chords can make a smooth progression sound jumpy when voices leap unnecessarily.","Which voice-leading choice is usually smoothest between two chords?",["Move every voice as far as possible","Keep common tones and move others by small steps","Double every note in unison","Ignore register"],1,"Retaining shared notes and moving other voices minimally creates continuity and clear part-writing."),
+        lessonData(28,"Advanced","Functional harmony","Functional harmony groups chords by role: tonic feels settled, predominant prepares motion, and dominant creates tension that commonly resolves to tonic. A chord's function depends on key, context, melody, and placement; the same chord can serve different roles in different progressions.","Tonic function: stability/home. Predominant function: preparation. Dominant function: tension and resolution.","1. Identify the key. 2. Mark I/vi as tonic-area candidates, ii/IV as predominant, V/vii° as dominant. 3. Listen for arrival and departure.","In C, Dm-G7-C moves predominant to dominant to tonic; compare ending on G7 versus C.","Play Dm-G7-C on guitar and let the bass motion D-G-C clarify the harmonic direction.","Shape phrase tension, endings, and reharmonizations.","A chord's function is not determined by its root alone; context matters.","Which sequence most clearly expresses predominant-dominant-tonic in C major?",["C-F-G","Dm-G7-C","Am-Dm-F","G-C-F"],1,"Dm is ii/predominant, G7 is V/dominant, and C is I/tonic."),
+        lessonData(29,"Advanced","Secondary dominants","A secondary dominant temporarily treats a diatonic chord other than tonic as a local tonic. It is written V/target: in C major, D7 is V/V because it resolves to G. Its chromatic notes create directed motion without necessarily changing the overall key.","Applied chord: temporary dominant of a diatonic target. V/V: dominant resolving to degree 5.","1. Choose a target chord. 2. Build its dominant seventh. 3. Add it before the target. 4. Resolve each altered tone by ear.","In C, play C-D7-G7-C; D7's F-sharp pulls to G and C-sharp can move to D.","Use D7 before G in a G-to-C turnaround; fret the F-sharp and hear its upward pull to G.","Add momentum to an expected chord and enrich songwriting transitions.","A secondary dominant borrows chromatic notes but does not automatically mean a full key change.","In C major, which chord is V/V and normally resolves to G?",["D major or D7","A minor","F major","B diminished"],0,"D is the dominant of G, so D or D7 functions as V/V in C."),
+        lessonData(30,"Advanced","Modal interchange","Modal interchange borrows chords from the parallel mode while keeping the same tonic, such as borrowing F minor or A-flat from C minor into C major. The borrowed chord supplies a fresh color; melody notes and voice leading help it sound intentional.","Parallel keys: major/minor keys with the same tonic. Borrowed chord: chord imported from a parallel mode.","1. Establish C major with C-F-G. 2. Borrow F minor from C minor. 3. Keep common tones and resolve the borrowed A-flat deliberately.","Play C-F-Fm-C; Fm's A-flat descends smoothly to G or resolves into C.","Try C-F-Fm-C using a compact Fm barre or triad shape; let A-flat's chromatic color stand out.","Create a bittersweet turn or surprising pre-chorus without abandoning the tonic.","Relative minor shares the signature; modal interchange usually refers to parallel modes with different notes.","Borrowing F minor into C major is an example of what technique?",["Modulation","Modal interchange","Inversion","Transposition"],1,"F minor is borrowed from parallel C minor while C remains the tonal center."),
+        lessonData(31,"Advanced","Musical modes","The seven modes are rotations of the major-scale pattern with distinct intervals and tonal centers: Ionian, Dorian, Phrygian, Lydian, Mixolydian, Aeolian, and Locrian. A mode is not just starting on a different note; its tonic must sound like home.","Mode: scale with a characteristic interval set and tonal center. Characteristic tone: interval that distinguishes a mode.","1. Play C major. 2. Center D and emphasize its natural 6 for D Dorian. 3. Center G and emphasize its flat 7 for G Mixolydian.","Use white keys over a D pedal, emphasizing B natural, to hear D Dorian rather than C major.","Play a D-Dorian pattern over Dm7; keep D as the tonal center rather than resolving every phrase to C.","Choose a modal sound for improvisation and distinguish it from ordinary major/minor harmony.","A mode is not identified by the first note alone; the tonic and characteristic intervals matter.","Which scale degree gives Mixolydian its characteristic major-but-bluesy color?",["Flat 3","Natural 4","Flat 7","Raised 7"],2,"Mixolydian is a major mode with a lowered seventh, such as F natural in G Mixolydian."),
+        lessonData(32,"Advanced","Modulation and key changes","Modulation establishes a new tonic over time; a brief tonicization emphasizes another chord without fully changing the perceived key. A pivot chord belongs to both keys and can connect them smoothly. A direct modulation may instead create a clear dramatic lift.","Modulation: established change of tonic. Tonicization: brief local emphasis. Pivot chord: shared chord linking keys.","1. State the original key. 2. Introduce a pivot or dominant of the new key. 3. Cadence in the new key. 4. Confirm with melody and bass.","Move from C major to G major using Am as a shared chord, then D7-G to establish the new tonic.","Transpose a final chorus up a whole step with a clear setup; keep capo and chord-shape changes coordinated.","Plan key changes that support vocal range and song form.","One chromatic chord does not necessarily mean modulation; the new tonic must be established.","What makes a modulation different from a brief tonicization?",["A new key center is established","A single borrowed note appears","The tempo changes","The melody repeats"],0,"Modulation establishes a new tonic, whereas tonicization briefly emphasizes a chord without replacing the main key."),
+        lessonData(33,"Advanced","Syncopation and groove","Syncopation emphasizes weak beats or offbeats, often by accenting, sustaining, or beginning notes where a strong beat is expected to be quiet. Groove is the repeated rhythmic feel created by subdivision, accents, articulation, and timing.","Offbeat: subdivision between main beats. Accent: emphasis. Backbeat: common accents on beats 2 and 4.","1. Tap quarter notes. 2. Speak eighth-note counts 1-and-2-and. 3. Accent the 'ands' while keeping the pulse steady.","Play a C chord on the 'and' before beat 2, sustaining across the beat; keep the left-hand pulse even.","Mute the strings and practice down-up eighth-note motion; accent selected upstrokes without losing time.","Make pop, funk, and Latin patterns feel propulsive and coordinate with a drummer.","Syncopation shifts accents, not the underlying pulse; do not speed up to reach the offbeat.","Where is an eighth-note offbeat in a counted 4/4 beat?",["On the number","Between counts, on 'and'","Only on beat 1","At the bar line"],1,"Eighth-note offbeats fall between quarter-note counts and are commonly spoken as 'and'."),
+        lessonData(34,"Advanced","Polyrhythm","A polyrhythm layers two different subdivisions over the same span, such as three evenly spaced beats against two. Both patterns must share a common cycle and return together. Slow subdivision counting helps the layers remain independent rather than collapsing into one pulse.","Polyrhythm: simultaneous contrasting rhythmic groupings. 3:2: three evenly spaced attacks against two in one shared cycle.","1. Divide a cycle into six equal slots. 2. Clap on slots 1,3,5 for three. 3. Tap on slots 1,4 for two. 4. Repeat without changing tempo.","Tap two beats with the left hand and three evenly spaced notes with the right across the same two-beat cycle.","Keep a steady foot pulse while picking a three-note group evenly across two beats; use a metronome slowly.","Build independence for drum parts, accompaniment, and layered arrangements.","Do not squeeze three notes into each of two beats; 3:2 distributes three events across the same span as two.","In a 3:2 polyrhythm, how many evenly spaced attacks share the cycle in the three-part layer?",["Two","Three","Four","Six"],1,"The numerator describes three evenly spaced attacks occurring across the same cycle as the two-part layer."),
+        lessonData(35,"Advanced","Dynamics and articulation","Dynamics indicate loudness and shape (p, f, crescendo, diminuendo); articulation indicates how notes begin, connect, or end (legato, staccato, accents, ties). Both apply to phrases, not only isolated notes, and should serve the musical direction.","Dynamics: volume/intensity markings. Articulation: note connection and attack. Legato: smoothly connected; staccato: short and detached.","1. Play a four-note phrase softly. 2. Crescendo toward its peak. 3. Repeat with detached articulation. 4. Keep tempo stable.","Shape a C-major scale from piano to forte, then play detached quarter notes without changing their beat length.","Strum a chord progression softly in the verse and more strongly in the chorus; use left-hand release to control note length.","Make repeated chords communicate a phrase and support song form.","Playing louder by rushing or squeezing harder can damage tone and timing; control the sound deliberately.","What does legato primarily describe?",["Volume","Smooth connection between notes","Tempo marking","Key signature"],1,"Legato is an articulation that connects notes smoothly rather than detaching them."),
+        lessonData(36,"Advanced","Ear training","Ear training develops recognition of pitch, intervals, rhythms, scale degrees, and chord quality through focused listening and immediate feedback. Sing before naming: internalizing the sound connects notation and instrument shapes to hearing.","Audiation: hearing music internally. Relative pitch: identifying distances/relationships between notes.","1. Sing a tonic. 2. Sing a target interval. 3. Check it on an instrument. 4. Repeat in multiple keys and reverse the direction.","Play C then E, sing the major third from C, and verify by playing both notes together.","Play a root and hum its fifth before locating the note on another string; check accuracy by listening.","Transcribe melodies, tune confidently, and recognize progressions without relying only on diagrams.","Guessing from a song mnemonic is less reliable than repeating the interval in different contexts.","What is a useful first step when practicing relative-pitch intervals?",["Sing a known tonic then the target interval","Memorize instrument serial numbers","Ignore the starting pitch","Play as fast as possible"],0,"A stable reference tonic gives the interval a context; singing it builds an audible internal relationship."),
+        lessonData(37,"Advanced","Chord substitutions","A chord substitution replaces a harmony while preserving enough notes, function, or voice-leading to support the melody. Common approaches include relative substitutions, tritone substitution for dominant sevenths, and changing a chord's inversion or extension. Check melody compatibility before choosing.","Substitution: alternate chord with a related role or tones. Tritone substitution: dominant chord a tritone away sharing guide tones.","1. Identify the original chord's function. 2. Find an alternative sharing tones/function. 3. Check melody notes. 4. Compare bass movement and resolution.","Replace G7 with D-flat7 before C; F and B (enharmonic C-flat) are guide tones shared by the dominant tritone pair.","Try Am for C in a C-major loop, then test D-flat7-G/C resolving by semitone bass motion.","Refresh a repeated progression while retaining its destination and supporting the melody.","A substitution is not automatically suitable just because it sounds interesting; melody and resolution still matter.","Which chord is the classic tritone substitute for G7?",["D7","D-flat7","A7","C7"],1,"D-flat7 lies a tritone from G7 and shares its essential guide-tone pitches enharmonically."),
+        lessonData(38,"Advanced","Transposition","Transposition moves every note and chord by the same interval while preserving the relationships. It changes key, not the internal quality or rhythmic shape. Written instruments may transpose differently, so clarify whether notation is concert pitch.","Transposition: shifting all pitches by a constant interval. Concert pitch: actual sounding pitch.","1. Identify the shift, such as up two semitones. 2. Move each root the same amount. 3. Preserve chord quality. 4. Recheck melody range.","Move C-F-G-Am up two semitones to D-G-A-Bm; retain the I-IV-V-vi relationship.","Shift a movable barre-chord progression up two frets; adjust open chords or use a capo and verify sounding pitch.","Adapt a song to a singer's range and keep ensemble arrangements aligned.","Transposing roots but not chord quality changes the progression rather than transposing it.","When transposing C major up a whole step, what is the new tonic?",["C-sharp","D","E-flat","F"],1,"A whole step is two semitones, moving C to D."),
+        lessonData(39,"Advanced","Capo applications","A capo clamps across a guitar fret and raises every open-string pitch by one semitone per fret. Chord shapes retain their fingering names but sound higher; the concert key is the shape transposed by the capo position. A capo does not change note relationships.","Capo: movable fret clamp. Shape key: chord names from finger shapes. Concert key: sounding key.","1. Choose a chord shape and capo fret. 2. Add that many semitones to its sounding root. 3. Check open strings and singer range.","A C shape with capo 2 sounds D; play D-F-sharp-A as the sounding triad while fingering C-E-G shapes.","With capo 2, use G-C-D shapes to sound A-D-E; compare with open-position A-D-E chords.","Find comfortable open voicings in a different key and match a singer without relearning every shape.","Do not confuse shape names with concert chord names when communicating with other musicians.","What chord does a C shape sound as with a capo on fret 2?",["C","D-flat","D","E"],2,"A capo on fret 2 raises the C shape by two semitones, so it sounds D."),
+        lessonData(40,"Advanced","Song structure and harmonic analysis","Song form organizes sections such as intro, verse, pre-chorus, chorus, bridge, and outro. Harmonic analysis tracks key, chord function, phrase length, repetition, and contrast across those sections. Lyrics, melody, dynamics, and arrangement all contribute to form.","Form: arrangement of musical sections. Phrase: coherent musical thought. Cadence: harmonic punctuation at a phrase ending.","1. Mark repeated sections. 2. Count bars in each phrase. 3. Label chords with Roman numerals. 4. Compare where tension, contrast, and resolution occur.","Map an eight-bar verse as two four-bar phrases; mark the cadence and compare the chorus's tonic arrival.","Chart verse/chorus chords and bar counts; note whether a riff, bass pattern, or capo shape signals each section.","Rehearse efficiently, communicate arrangement changes, and design a satisfying build.","Do not identify a section from lyrics alone; harmony, melody, texture, and repetition also signal form.","What information is most useful when analyzing a song's harmonic form?",["Only its title","Chord functions, phrases, and section repetition","The singer's clothing","Only the instrument brand"],1,"A useful analysis follows chord function and phrase/section relationships, not unrelated surface details."),
       ];
       function theoryView() {
-        const box = h("div"),
-          pct = Math.round(S.prog.size * 10);
+        const box = h("div");
+        const completed = () => L.filter((lesson) => S.prog.has(lesson.id)).length;
+        const pct = () => Math.round((completed() / L.length) * 100);
         const menu = () =>
           box.replaceChildren(
             h("div", { class: "card", style: "margin-bottom:1rem" }, [
-              h("b", {}, S.prog.size + " of 10 lessons complete"),
+              h("b", {}, completed() + " of " + L.length + " lessons complete"),
+              h("span", { class: "sub theory-percent" }, pct() + "%"),
               h(
                 "div",
                 { class: "bar" },
-                h("i", { style: "width:" + pct + "%" }),
+                h("i", { style: "width:" + pct() + "%" }),
               ),
             ]),
-            h(
-              "div",
-              { class: "grid" },
-              L.map((l, i) =>
-                h(
-                  "button",
-                  {
-                    class: "card opt",
-                    style: "margin:0;min-height:96px",
-                    onclick: () => lesson(i),
-                  },
-                  [
-                    h("b", {}, i + 1 + ". " + l[0]),
-                    h(
-                      "div",
-                      { class: "sub" },
-                      S.prog.has(i) ? "Completed" : "Not started",
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            ...["Beginner", "Intermediate", "Advanced"].map((level) => {
+              const lessons = L.filter((item) => item.level === level);
+              return h("section", { class: "theory-level" }, [
+                h("h2", {}, level),
+                h("div", { class: "grid" }, lessons.map((item) => {
+                  const index = L.indexOf(item);
+                  return h("button", {
+                    class: "card opt theory-lesson-card",
+                    onclick: () => lesson(index),
+                  }, [
+                    h("span", { class: "theory-lesson-number" }, String(index + 1).padStart(2, "0")),
+                    h("b", {}, item.title),
+                    h("span", { class: "sub" }, S.prog.has(item.id) ? "Completed" : "Not started"),
+                  ]);
+                })),
+              ]);
+            }),
           );
         const lesson = (i) => {
-          const l = L[i],
-            fb = h("p", { class: "msg" });
+          const l = L[i];
+          let answered = false;
+          const feedback = h("div", { class: "theory-feedback", "aria-live": "polite" });
+          const quiz = h("div", { class: "card theory-quiz" }, [
+            h("h2", {}, "Knowledge check"),
+            h("p", { class: "theory-question" }, l.question),
+            ...l.answers.map((answer, answerIndex) => h("button", {
+              class: "opt theory-answer",
+              onclick: async (e) => {
+                if (answered) return;
+                answered = true;
+                const buttons = [...e.currentTarget.parentNode.querySelectorAll(".theory-answer")];
+                buttons.forEach((button) => { button.disabled = true; });
+                if (answerIndex === l.correct) {
+                  e.currentTarget.classList.add("ok");
+                  feedback.className = "theory-feedback msg ok";
+                  feedback.textContent = "Correct. " + l.reason;
+                  if (!S.prog.has(l.id)) {
+                    const r = await sb.from("lesson_progress").upsert({
+                      user_id: S.u.id,
+                      lesson: l.id,
+                      score: 10,
+                    });
+                    if (fail(r.error)) {
+                      feedback.className = "theory-feedback msg";
+                      feedback.textContent = "Correct answer, but progress could not be saved. Please try again later.";
+                    } else {
+                      S.prog.add(l.id);
+                    }
+                  }
+                } else {
+                  e.currentTarget.classList.add("bad");
+                  buttons[l.correct].classList.add("ok");
+                  feedback.className = "theory-feedback msg";
+                  feedback.textContent = "Review the highlighted answer. " + l.reason;
+                }
+                if (answerIndex !== l.correct) {
+                  feedback.append(h("button", {
+                    class: "btn g sm",
+                    onclick: () => lesson(i),
+                  }, "Try again"));
+                }
+              },
+            }, answer)),
+            feedback,
+          ]);
           box.replaceChildren(
             h(
               "button",
               { class: "btn g sm", onclick: () => shell.go("theory") },
               "All lessons",
             ),
-            h(
-              "div",
-              { class: "card", style: "margin-top:1rem;max-width:640px" },
-              [
-                h("h1", { style: "font-size:1.4rem" }, l[0]),
-                h("p", { style: "margin:.6rem 0 1.2rem" }, l[1]),
-                h("b", {}, l[2]),
-                ...l[3].map((o, j) =>
-                  h(
-                    "button",
-                    {
-                      class: "opt",
-                      onclick: async (e) => {
-                        const all = [
-                          ...e.target.parentNode.querySelectorAll(".opt"),
-                        ];
-                        all.forEach((x) => (x.disabled = true));
-                        if (j === l[4]) {
-                          e.target.classList.add("ok");
-                          fb.className = "msg ok";
-                          fb.textContent = "Correct.";
-                          if (!S.prog.has(i)) {
-                            const r = await sb.from("lesson_progress").upsert({
-                              user_id: S.u.id,
-                              lesson: i,
-                              score: 10,
-                            });
-                            if (!r.error) S.prog.add(i);
-                          }
-                        } else {
-                          e.target.classList.add("bad");
-                          all[l[4]].classList.add("ok");
-                          fb.textContent =
-                            "Not quite. The correct answer is highlighted.";
-                        }
-                        fb.after(
-                          h("div", { class: "row" }, [
-                            h(
-                              "button",
-                              { class: "btn g sm", onclick: () => lesson(i) },
-                              "Review lesson",
-                            ),
-                            i < 9 &&
-                              h(
-                                "button",
-                                {
-                                  class: "btn sm",
-                                  onclick: () => lesson(i + 1),
-                                },
-                                "Next lesson",
-                              ),
-                          ]),
-                        );
-                      },
-                    },
-                    o,
-                  ),
-                ),
-                fb,
-              ],
-            ),
+            h("div", { class: "card theory-content" }, [
+              h("span", { class: "theory-level-tag" }, l.level),
+              h("h1", {}, l.title),
+              h("p", { class: "theory-explanation" }, l.explanation),
+              h("section", { class: "theory-section" }, [
+                h("h2", {}, "Key terms"),
+                h("p", {}, l.terms),
+              ]),
+              h("section", { class: "theory-section" }, [
+                h("h2", {}, "Step-by-step"),
+                h("p", {}, l.steps),
+              ]),
+              h("div", { class: "theory-example-grid" }, [
+                h("section", { class: "theory-example" }, [
+                  h("h2", {}, "Piano example"),
+                  h("p", {}, l.piano),
+                ]),
+                h("section", { class: "theory-example" }, [
+                  h("h2", {}, "Guitar example"),
+                  h("p", {}, l.guitar),
+                ]),
+              ]),
+              h("section", { class: "theory-section" }, [
+                h("h2", {}, "Put it into practice"),
+                h("p", {}, l.apply),
+              ]),
+              h("section", { class: "theory-mistake" }, [
+                h("h2", {}, "Common mistake"),
+                h("p", {}, l.mistake),
+              ]),
+              quiz,
+              h("div", { class: "row theory-pagination" }, [
+                h("button", {
+                  class: "btn g",
+                  disabled: i === 0,
+                  onclick: () => lesson(i - 1),
+                }, "Previous lesson"),
+                h("span", { class: "sub" }, (i + 1) + " of " + L.length),
+                h("button", {
+                  class: "btn",
+                  disabled: i === L.length - 1,
+                  onclick: () => lesson(i + 1),
+                }, "Next lesson"),
+              ]),
+            ]),
           );
         };
         menu();
         return page(
           "Music theory",
-          "Ten short lessons. Progress is saved to your account.",
+          "A structured course of " + L.length + " lessons from fundamentals to practical advanced harmony. Progress is saved to your account.",
           box,
         );
       }
@@ -1040,21 +1190,21 @@
       const BUILT = [
         {
           id: "b:shut-up",
-          title: "Shut Up and Dance",
-          artist: "Walk the Moon",
-          body: "Verse\n[Am] [F] [C] [G]\n\nChorus\n[C] [G] [Am] [F]",
+          title: "Neon Steps",
+          artist: "BandMate Demo",
+          body: "Verse\n[Am]Streetlights are waking [F]over the avenue\n[C]Footsteps find a rhythm [G]under skies of blue\n[Am]Every corner opens [F]like a door to somewhere new\n[C]We keep the night moving [G]with a spark to follow through\n\nChorus\n[C]Take the long way [G]home tonight\n[Am]Let the city [F]paint our way\n[C]Every heartbeat [G]keeps the time\n[Am]We can make this [F]moment stay",
         },
         {
           id: "b:perfect",
-          title: "Perfect",
-          artist: "Ed Sheeran",
-          body: "Verse\n[C] [Am] [F] [G]\n\nChorus\n[F] [G] [C] [Am]",
+          title: "Paper Lanterns",
+          artist: "BandMate Demo",
+          body: "Verse\n[C]We fold our wishes [Am]from the notes we never sent\n[F]Draw a little moonlight [G]on the paper where it bent\n[C]Set them by the window [Am]where the evening colors blend\n[F]Watch them lift together [G]as the quiet hours descend\n\nChorus\n[F]Carry every small hope [G]through the open sky\n[C]Let it find a place to [Am]glow before the night goes by\n[F]Even when the road is [G]long, we start again\n[C]One light becomes a [Am]whole horizon then",
         },
         {
           id: "b:someone",
-          title: "Someone Like You",
-          artist: "Adele",
-          body: "Verse\n[C] [G] [Am] [F]\n\nChorus\n[F] [C] [G] [Am]",
+          title: "Quiet After Rain",
+          artist: "BandMate Demo",
+          body: "Verse\n[C]The rooftops hold the [G]silver of the morning\n[Am]Puddles catch the [F]clouds as they drift by\n[C]A sparrow tests the [G]air above the garden\n[Am]And new leaves turn their [F]faces to the sky\n\nChorus\n[F]After the rain, [C]the colors return\n[G]The streets shine softly [Am]where the day begins\n[F]We take a breath and [C]let the stillness stay\n[G]There is room to grow [Am]after the rain",
         },
       ];
       const SH = (n, s) =>
@@ -1074,8 +1224,35 @@
         const m = c.match(/^([A-G][#b]?)([^/]*)/);
         if (!m) return "";
         const r = NN.indexOf(SH(m[1], 0)),
-          mn = /^m(?!aj)/.test(m[2]);
-        return [0, mn ? 3 : 4, 7].map((i) => NN[(r + i) % 12]).join(" ");
+          suffix = m[2];
+        let intervals;
+        if (/dim|°/.test(suffix))
+          intervals = /7|°/.test(suffix) ? [0, 3, 6, 9] : [0, 3, 6];
+        else if (/aug|\+/.test(suffix)) intervals = [0, 4, 8];
+        else if (/sus2/.test(suffix)) intervals = [0, 2, 7];
+        else if (/sus4/.test(suffix)) intervals = [0, 5, 7];
+        else if (/maj7/.test(suffix)) intervals = [0, 4, 7, 11];
+        else if (/m7/.test(suffix)) intervals = [0, 3, 7, 10];
+        else if (/7/.test(suffix)) intervals = [0, 4, 7, 10];
+        else if (/^m(?!aj)/.test(suffix)) intervals = [0, 3, 7];
+        else intervals = [0, 4, 7];
+        const steps = /sus2/.test(suffix)
+          ? [0, 1, 4]
+          : /sus4/.test(suffix)
+            ? [0, 3, 4]
+            : intervals.length === 4
+              ? [0, 2, 4, 6]
+              : [0, 2, 4];
+        const letters = "CDEFGAB",
+          natural = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 },
+          rootLetter = m[1][0],
+          rootStep = letters.indexOf(rootLetter);
+        return intervals.map((interval, index) => {
+          const letter = letters[(rootStep + steps[index]) % 7],
+            target = (r + interval) % 12,
+            delta = ((target - natural[letter] + 6 + 12) % 12) - 6;
+          return letter + (delta > 0 ? "#".repeat(delta) : "b".repeat(-delta));
+        }).join(" ");
       };
       const CHORDS = [
         ["A", [ "x", 0, 2, 2, 2, 0 ], [0, 0, 1, 2, 3, 0], "Keep your fingers curled so each string rings clearly."],
@@ -1095,6 +1272,10 @@
         ["G7", [3, 2, 0, 0, 0, 1], [3, 2, 0, 0, 0, 1], "Keep the D, G and B strings open."],
         ["Bm", ["x", 2, 4, 4, 3, 2], [0, 1, 3, 4, 2, 1], "Index finger bars the second fret; avoid the low E string."],
         ["F#m", [2, 4, 4, 2, 2, 2], [1, 3, 4, 1, 1, 1], "Index finger bars the second fret across all six strings."],
+        ["Bdim", ["x", 2, 3, 4, 3, "x"], [0, 1, 2, 4, 3, 0], "Play B, D, and F; keep the fretted notes close to the fret wires."],
+        ["Daug", ["x", "x", 0, 3, 3, 2], [0, 0, 0, 2, 3, 1], "This D augmented shape raises the fifth; resolve it by moving the top note."],
+        ["Asus2", ["x", 0, 2, 2, 0, 0], [0, 0, 2, 3, 0, 0], "Leave the B string open to replace the third with the second."],
+        ["Asus4", ["x", 0, 2, 2, 3, 0], [0, 0, 1, 2, 3, 0], "Move the B-string note to the third fret, then resolve it to A major."],
       ].map(([name, frets, fingers, tip]) => ({ name, frets, fingers, tip }));
       let selectedChord = "C";
       function chordDiagram(chord) {
@@ -1295,14 +1476,35 @@
           return h("div", {});
         });
       }
-      function songDetail(s, back) {
+      function songDetail(s, back, showBack = true) {
         let st = 0,
           nt = false;
         const out = h("div", { class: "card sheet" }),
           lab = h("span", { class: "mono" }, "0");
         const paint = () => {
           lab.textContent = (st > 0 ? "+" : "") + st;
-          out.replaceChildren(...renderedSongRows(s.body, st, true));
+          const rows = renderedSongRows(s.body, st, true);
+          if (nt) {
+            const names = [
+              ...new Set(
+                [...(s.body || "").matchAll(/\[([^\]]+)\]/g)].map((match) =>
+                  TR(match[1], st),
+                ),
+              ),
+            ];
+            rows.push(
+              h("div", { class: "song-chord-notes" }, [
+                h("b", {}, "Chord notes"),
+                ...names.map((name) =>
+                  h("div", {}, [
+                    h("span", { class: "mono" }, name),
+                    h("span", { class: "sub" }, tones(name) || "Notes unavailable"),
+                  ]),
+                ),
+              ]),
+            );
+          }
+          out.replaceChildren(...rows);
         };
         paint();
         const fav = h("button", { class: "btn g sm" }),
@@ -1323,7 +1525,7 @@
           fp();
         };
         return h("div", {}, [
-          h("button", { class: "btn g sm", onclick: back }, "Back"),
+          showBack && h("button", { class: "btn g sm", onclick: back }, "Back"),
           h("h1", { style: "margin-top:1rem" }, s.title),
           h("p", { class: "sub" }, s.artist || "Unknown artist"),
           h("div", { class: "stave" }),
@@ -1358,11 +1560,13 @@
               "button",
               {
                 class: "btn g sm",
+                "aria-pressed": "false",
                 onclick: (e) => {
                   nt = !nt;
                   e.target.textContent = nt
                     ? "Hide chord notes"
                     : "Show chord notes";
+                  e.target.setAttribute("aria-pressed", String(nt));
                   paint();
                 },
               },
@@ -1381,53 +1585,66 @@
             maxlength: "20",
             "aria-label": "Search chords",
           }),
-          songSearch = h("input", {
-            type: "search",
-            placeholder: "Search by song title or artist",
-            maxlength: "60",
-            "aria-label": "Search songs",
-          }),
           detail = h("div"),
           chordList = h("div", { class: "chord-library-list" }),
-          songList = h("div", { class: "list" }),
-          open = (s) =>
-            box.replaceChildren(songDetail(s, () => shell.go("chords")));
+          categoryList = h("div", { class: "chord-categories" });
+        const categories = ["All", "Major", "Minor", "Seventh", "Diminished", "Augmented", "Suspended"];
+        let category = "All";
+        const categoryOf = (name) => {
+          if (/dim|°/.test(name)) return "Diminished";
+          if (/aug|\+/.test(name)) return "Augmented";
+          if (/sus/.test(name)) return "Suspended";
+          if (/7/.test(name)) return "Seventh";
+          if (/^[A-G][#b]?m/.test(name)) return "Minor";
+          return "Major";
+        };
         const drawChord = () => {
-          const chord = CHORDS.find((item) => item.name === selectedChord) || CHORDS[0];
-          detail.replaceChildren(
-            h("div", { class: "chord-detail" }, [
-              h("div", { class: "chord-diagram-wrap" }, [
-                h("h2", {}, chord.name),
-                chordDiagram(chord),
-                h("div", { class: "sub chord-strings" }, "Thickest string on the left • × = don't play • ○ = open"),
-              ]),
-              h("div", { class: "chord-howto" }, [
-                h("div", { class: "eyebrow" }, "GUITAR CHORD"),
-                h("h2", {}, "How to play " + chord.name),
-                h("p", { class: "sub" }, chord.tip),
-                h("p", { class: "chord-fingers" }, [
-                  h("b", {}, "Finger numbers: "),
-                  "1 index · 2 middle · 3 ring · 4 pinky",
-                ]),
-                h("div", { class: "chord-notes" }, [
-                  h("b", {}, "Notes"),
-                  h("span", { class: "mono" }, tones(chord.name)),
-                ]),
-                h("p", { class: "sub" }, "Press just behind each fret and check each string sounds clear."),
-              ]),
-            ]),
-          );
           const term = chordSearch.value.trim().toLowerCase();
           const matching = CHORDS.filter((item) =>
-            item.name.toLowerCase().includes(term),
+            (category === "All" || categoryOf(item.name) === category) &&
+            (item.name + " " + tones(item.name) + " " + item.tip).toLowerCase().includes(term),
           );
+          let chord = matching.find((item) => item.name === selectedChord);
+          if (!chord && matching.length) {
+            chord = matching[0];
+            selectedChord = chord.name;
+          }
+          detail.replaceChildren();
+          if (chord) {
+            detail.append(
+              h("div", { class: "chord-detail" }, [
+                h("div", { class: "chord-diagram-wrap" }, [
+                  h("span", { class: "theory-level-tag" }, categoryOf(chord.name)),
+                  h("h2", {}, chord.name),
+                  chordDiagram(chord),
+                  h("div", { class: "sub chord-strings" }, "Thickest string on the left · × = don't play · ○ = open"),
+                ]),
+                h("div", { class: "chord-howto" }, [
+                  h("div", { class: "eyebrow" }, "GUITAR CHORD"),
+                  h("h2", {}, "How to play " + chord.name),
+                  h("p", { class: "sub" }, chord.tip),
+                  h("p", { class: "chord-fingers" }, [
+                    h("b", {}, "Finger numbers: "),
+                    "1 index · 2 middle · 3 ring · 4 pinky",
+                  ]),
+                  h("div", { class: "chord-notes" }, [
+                    h("b", {}, "Notes"),
+                    h("span", { class: "mono" }, tones(chord.name)),
+                  ]),
+                  h("p", { class: "sub" }, "Press just behind each fret and check each string sounds clear."),
+                ]),
+              ]),
+            );
+          } else {
+            detail.append(h("p", { class: "sub" }, "No chords match this search and category."));
+          }
           chordList.replaceChildren(
             ...matching.map((item) =>
               h(
                 "button",
                 {
-                  class:
-                    "chord-choice" + (item.name === chord.name ? " active" : ""),
+                  class: "chord-choice" + (item.name === selectedChord ? " active" : ""),
+                  "aria-pressed": String(item.name === selectedChord),
                   onclick: () => {
                     selectedChord = item.name;
                     drawChord();
@@ -1437,73 +1654,45 @@
               ),
             ),
           );
-          if (!matching.length)
-            chordList.append(h("p", { class: "sub" }, "No matching chords in the beginner library yet."));
         };
-        const drawSongs = () => {
-          const term = songSearch.value.trim().toLowerCase();
-          const matches = allSongs().filter((song) =>
-            (song.title + " " + (song.artist || "")).toLowerCase().includes(term),
-          );
-          songList.replaceChildren(
-            ...(matches.length
-              ? matches.map((song) =>
-                  h("div", {}, [
-                    h("div", {}, [
-                      h("b", {}, song.title),
-                      h("div", { class: "sub" }, song.artist || ""),
-                    ]),
-                    h(
-                      "button",
-                      { class: "btn g sm", onclick: () => open(song) },
-                      "Open song",
-                    ),
-                  ]),
-                )
-              : [
-                  h(
-                    "p",
-                    { class: "sub" },
-                    "No songs match. Add your lyrics and chords in Songs.",
-                  ),
-                ]),
-          );
+        const drawCategories = () => {
+          categoryList.replaceChildren(...categories.map((name) =>
+            h("button", {
+              class: "chip" + (category === name ? " on" : ""),
+              "aria-pressed": String(category === name),
+              onclick: () => {
+                category = name;
+                drawCategories();
+                drawChord();
+              },
+            }, name),
+          ));
         };
         chordSearch.oninput = drawChord;
-        songSearch.oninput = drawSongs;
+        drawCategories();
         drawChord();
-        drawSongs();
         box.append(
           h("section", { class: "card chord-library-card" }, [
             h("div", { class: "chord-library-heading" }, [
               h("div", {}, [
-                h("h2", {}, "Learn a chord"),
-                h("p", { class: "sub" }, "Choose a chord to see where to put your fingers."),
+                h("h2", {}, "Chord library"),
+                h("p", { class: "sub" }, "Explore guitar shapes, chord tones, and finger positions."),
               ]),
               chordSearch,
             ]),
+            categoryList,
             h("div", { class: "chord-library-layout" }, [
               detail,
               h("aside", { class: "chord-more" }, [
-                h("h3", {}, "More chords"),
+                h("h3", {}, "Chords"),
                 chordList,
               ]),
             ]),
           ]),
-          h("section", { class: "card song-library-card" }, [
-            h("div", { class: "chord-library-heading" }, [
-              h("div", {}, [
-                h("h2", {}, "Songs"),
-                h("p", { class: "sub" }, "Open a song to see its chords above the lyrics. Tap a chord to learn its fingering."),
-              ]),
-              songSearch,
-            ]),
-            songList,
-          ]),
         );
         return page(
           "Chord library",
-          "Learn guitar chord shapes, then practice them in song charts.",
+          "Browse chords by quality and search their notes or fingering tips.",
           box,
         );
       }
@@ -1667,7 +1856,7 @@
                     h(
                       "p",
                       { class: "sub" },
-                      "Your setlist is empty. Open a song in Chords and choose Add to setlist.",
+                      "Your setlist is empty. Open a song in Song List or a song detail and choose Add to setlist.",
                     ),
                   ],
             ),
@@ -1683,134 +1872,152 @@
       /* ============ 10. MY SONGS (full CRUD) ============ */
       function songsView(edit) {
         const box = h("div"),
-          t = h("input", { maxlength: "80", value: edit?.title || "" }),
-          a = h("input", { maxlength: "80", value: edit?.artist || "" }),
-          b = h(
-            "textarea",
-            {
+          search = h("input", {
+            type: "search",
+            maxlength: "80",
+            placeholder: "Search titles or artists",
+            "aria-label": "Search songs by title or artist",
+          }),
+          filter = h("select", { "aria-label": "Filter song list" }, [
+            h("option", { value: "all" }, "All songs"),
+            h("option", { value: "mine" }, "My songs"),
+            h("option", { value: "library" }, "Songbook"),
+          ]),
+          results = h("div", { class: "song-card-grid" });
+        const renderEditor = (song) => {
+          const title = h("input", { maxlength: "80", value: song?.title || "" }),
+            artist = h("input", { maxlength: "80", value: song?.artist || "" }),
+            body = h("textarea", {
               maxlength: "5000",
               "aria-label": "Song lyrics and chords",
               placeholder: "[Am]Place a chord [G]right before [C]the word",
-            },
-            edit?.body || "",
-          ),
-          preview = h("div", { class: "card sheet song-preview" });
-        const updatePreview = () =>
-          preview.replaceChildren(...renderedSongRows(b.value, 0, false));
-        b.oninput = updatePreview;
-        updatePreview();
-        const list = h(
-          "div",
-          { class: "list" },
-          S.songs.length
-            ? S.songs.map((s) =>
-                h("div", {}, [
-                  h("div", {}, [
-                    h("b", {}, s.title),
-                    h("div", { class: "sub" }, s.artist || ""),
-                  ]),
-                  h("div", { class: "row" }, [
-                    h(
-                      "button",
-                      {
-                        class: "btn g sm",
-                        onclick: () => box.replaceWith(songsView(s)),
-                      },
-                      "Edit",
-                    ),
-                    h(
-                      "button",
-                      {
-                        class: "btn g sm",
-                        onclick: async () => {
-                          if (!confirm('Delete "' + s.title + '"?')) return;
-                          const r = await sb
-                            .from("songs")
-                            .delete()
-                            .eq("id", s.id);
-                          if (fail(r.error)) return;
-                          S.songs = S.songs.filter((x) => x.id !== s.id);
-                          S.favs.delete("u:" + s.id);
-                          shell.go("songs");
-                        },
-                      },
-                      "Delete",
-                    ),
-                  ]),
-                ]),
-              )
-            : [h("p", { class: "sub" }, "You have not added any songs yet.")],
-        );
-        box.append(
-          h("div", { class: "card", style: "margin-bottom:1.25rem" }, [
-            h("b", {}, edit ? "Edit song" : "New song"),
-            field("Title", t),
-            field("Artist", a),
-            field(
-              "Lyrics & chords",
-              b,
-            ),
-            h(
-              "p",
-              { class: "sub", style: "margin-top:.4rem" },
-              "For accurate placement, put each chord in brackets immediately before the word or syllable where it changes. Example: [Am]Kung [G]ikaw ay [C]nariyan. Chord-only lines above a lyric line are also supported.",
-            ),
+            }, song?.body || ""),
+            preview = h("div", { class: "card sheet song-preview" });
+          const updatePreview = () =>
+            preview.replaceChildren(...renderedSongRows(body.value, 0, false));
+          body.oninput = updatePreview;
+          updatePreview();
+          box.replaceChildren(h("div", { class: "card song-editor" }, [
+            h("div", { class: "row song-editor-heading" }, [
+              h("h2", {}, song ? "Edit song" : "Add a song"),
+              h("button", { class: "btn g", onclick: draw }, "Back to Song List"),
+            ]),
+            field("Title", title),
+            field("Artist", artist),
+            field("Lyrics & chords", body),
+            h("p", { class: "sub", style: "margin-top:.4rem" },
+              "Put each chord in brackets immediately before the word or syllable where it changes. Chord-only lines above a lyric line are also supported."),
             h("b", { class: "song-preview-label" }, "Live preview"),
             preview,
             h("div", { class: "row", style: "margin-top:1rem" }, [
-              h(
-                "button",
-                {
-                  class: "btn",
-                  onclick: async (e) => {
-                    const row = {
-                      title: t.value.trim(),
-                      artist: a.value.trim() || null,
-                      body: b.value,
-                    };
-                    if (!row.title) return toast("Add a title.", 1);
-                    if (!row.body.trim()) return toast("Add lyrics and chords.", 1);
-                    e.target.disabled = true;
-                    const r = edit
-                      ? await sb
-                          .from("songs")
-                          .update(row)
-                          .eq("id", edit.id)
-                          .select()
-                          .single()
-                      : await sb
-                          .from("songs")
-                          .insert({ ...row, user_id: S.u.id })
-                          .select()
-                          .single();
-                    e.target.disabled = false;
+              h("button", {
+                class: "btn",
+                onclick: async (e) => {
+                  const row = {
+                    title: title.value.trim(),
+                    artist: artist.value.trim() || null,
+                    body: body.value,
+                  };
+                  if (!row.title) return toast("Add a title.", 1);
+                  if (!row.body.trim()) return toast("Add lyrics and chords.", 1);
+                  const button = e.currentTarget;
+                  button.disabled = true;
+                  try {
+                    const r = song
+                      ? await sb.from("songs").update(row).eq("id", song.id).select().single()
+                      : await sb.from("songs").insert({ ...row, user_id: S.u.id }).select().single();
                     if (fail(r.error)) return;
-                    S.songs = edit
-                      ? S.songs.map((x) => (x.id === edit.id ? r.data : x))
+                    S.songs = song
+                      ? S.songs.map((item) => item.id === song.id ? r.data : item)
                       : [r.data, ...S.songs];
                     toast("Song saved.");
-                    shell.go("songs");
-                  },
+                    draw();
+                  } catch (error) {
+                    console.error("BandMate song save failed:", error);
+                    toast("Could not save this song. Please try again.", 1);
+                  } finally {
+                    button.disabled = false;
+                  }
                 },
-                "Save song",
-              ),
-              edit &&
-                h(
-                  "button",
-                  { class: "btn g", onclick: () => shell.go("songs") },
-                  "Cancel",
-                ),
+              }, "Save song"),
             ]),
-          ]),
-          h("div", { class: "card" }, list),
+          ]));
+        };
+        const openSong = (song) => {
+          box.replaceChildren(
+            h("div", { class: "song-detail-heading" }, [
+              h("button", { class: "btn g", onclick: draw }, "Back to Song List"),
+              song.mine && h("button", {
+                class: "btn",
+                onclick: () => renderEditor(song),
+              }, "Edit song"),
+            ]),
+            songDetail(song, draw, false),
+          );
+        };
+        const draw = () => {
+          const term = search.value.trim().toLowerCase(),
+            mode = filter.value,
+            matches = allSongs().filter((song) => {
+              const isMine = Boolean(song.mine);
+              return (mode === "all" || (mode === "mine" && isMine) || (mode === "library" && !isMine)) &&
+                (song.title + " " + (song.artist || "")).toLowerCase().includes(term);
+            });
+          results.replaceChildren(...(matches.length
+            ? matches.map((song) => h("article", { class: "card song-card" }, [
+              h("div", { class: "song-card-icon", "aria-hidden": "true" }, "♫"),
+              h("div", { class: "song-card-info" }, [
+                h("span", { class: "theory-level-tag" }, song.mine ? "My song" : "Songbook"),
+                h("h2", {}, song.title),
+                h("p", { class: "sub" }, song.artist || "Unknown artist"),
+              ]),
+              h("div", { class: "row song-card-actions" }, [
+                h("button", { class: "btn g sm", onclick: () => openSong(song) }, "View"),
+                song.mine && h("button", {
+                  class: "btn g sm",
+                  onclick: () => renderEditor(song),
+                }, "Edit"),
+                song.mine && h("button", {
+                  class: "btn g sm",
+                  onclick: async () => {
+                    if (!confirm('Delete "' + song.title + '"?')) return;
+                    const r = await sb.from("songs").delete().eq("id", song.id);
+                    if (fail(r.error)) return;
+                    S.songs = S.songs.filter((item) => item.id !== song.id);
+                    S.favs.delete("u:" + song.id);
+                    draw();
+                    toast("Song deleted.");
+                  },
+                }, "Delete"),
+              ]),
+            ]))
+            : [h("div", { class: "card song-empty" }, [
+              h("b", {}, "No songs found"),
+              h("p", { class: "sub" }, "Try a different search or add your own song."),
+            ])]));
+          box.replaceChildren(
+            h("div", { class: "card song-tools" }, [
+              h("div", { class: "song-search" }, [
+                h("label", {}, "Find a song"),
+                search,
+              ]),
+              h("div", { class: "song-filter" }, [
+                h("label", {}, "Show"),
+                filter,
+              ]),
+              h("button", { class: "btn", onclick: () => renderEditor(null) }, "Add song"),
+            ]),
+            results,
+          );
+        };
+        search.oninput = draw;
+        filter.onchange = draw;
+        draw();
+        return page(
+          "Song List",
+          "Search, view, and manage your songbook and personal chord sheets.",
+          box,
         );
-        return edit
-          ? box
-          : page(
-              "My songs",
-              "Write your own chord sheets. Only you can see them.",
-              box,
-            );
       }
 
       /* ============ 2. PROFILE + ACCOUNT ============ */
@@ -1879,10 +2086,7 @@
           h("div", { class: "card", style: "max-width:520px" }, [
             h("b", {}, "Account"),
             h("p", { class: "sub" }, S.u.email),
-            field(
-              "New password (at least 10 characters)",
-              passwordControl(pw),
-            ),
+            field("New password (at least 10 characters)", pw),
             h("div", { class: "row", style: "margin-top:1rem" }, [
               h(
                 "button",
