@@ -8,7 +8,7 @@
   "icons": [
     {
       "src": "assets/icon.jpg",
-      "type": "image/jpeg"
+      "type": "image/png"
     }
   ]
 }
