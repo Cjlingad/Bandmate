@@ -63,6 +63,9 @@
           "M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5 11a7 7 0 0 0 14 0M12 18v3",
         chords: "M4 5v14M8 5v14M12 5v14M16 5v14M20 5v14M2 9h20M2 15h20",
         metro: "M8 21l3-18h2l3 18zM12 17l5-8M12 5v6",
+        eye: "M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+        eyeOff:
+          "M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.7 15.7 0 0 1-4.1 4.8M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7c1.4 0 2.7-.3 3.8-.8",
         setlist:
           "M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.5A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z",
         songs: "M9 18V5l12-2v13M9 18a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3zm12-2a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3z",
@@ -145,10 +148,12 @@
               type: "button",
               "aria-label": "Show password",
               "aria-pressed": "false",
+              "aria-controls": "auth-password",
               onclick: (e) => {
                 const visible = pw.type === "password";
                 pw.type = visible ? "text" : "password";
-                e.currentTarget.textContent = visible ? "Hide" : "Show";
+                pw.classList.toggle("password-visible", visible);
+                e.currentTarget.replaceChildren(ic(visible ? "eyeOff" : "eye"));
                 e.currentTarget.setAttribute(
                   "aria-label",
                   visible ? "Hide password" : "Show password",
@@ -156,7 +161,7 @@
                 e.currentTarget.setAttribute("aria-pressed", String(visible));
               },
             },
-            "Show",
+            ic("eye"),
           );
           const passwordField = h("div", { class: "password-field" }, [
             pw,
@@ -742,9 +747,9 @@
         lessonData(8,"Intermediate","Chord inversions","An inversion changes which chord tone is the lowest note while keeping the same chord tones. Root position has the root in the bass; first inversion places the third there; second inversion places the fifth there. Slash-chord notation names the chord and bass note.","Voicing: arrangement/register of chord tones. Inversion: chord tone other than root in bass.","1. Play C-E-G. 2. Move C above the other notes for E-G-C. 3. Move E above them for G-C-E. 4. Keep chord identity while bass changes.","Play C-E-G, E-G-C, and G-C-E with the left hand; notice the smooth upper-voice movement.","Choose C/G to put G in the bass, or use a C/E shape for a smoother bass line between C and F.","Keep chord progressions connected and support a desired bass melody.","An inversion is not a new chord quality; the same chord tones remain present.","What is the bass note of a C-major first inversion?",["C","E","G","B"],1,"First inversion places the triad's third, E, in the bass."),
         lessonData(20,"Intermediate","Chord progressions","A progression is a sequence of chords whose roots and qualities create motion and a sense of arrival. In major keys, I, IV, and V are common pillars; ii and vi add pre-dominant or relative-minor colors. Function, rhythm, and melody shape how a progression feels.","Progression: ordered chord sequence. Tonic: home function. Predominant: leads toward dominant. Cadence: phrase-ending harmonic motion.","1. Pick a key. 2. Build I-IV-V chords. 3. End V-I. 4. Add rhythm and melody; listen for the cadence.","In C, play C-F-G-C; use inversions to keep the notes close between chords.","In G, try G-C-D-G with open shapes; strum four steady beats per chord before varying rhythm.","Write songs, recognize common loops, and make phrase endings feel intentional.","Roman numerals describe key-relative functions; the same chord name has different roles in another key.","In C major, which chord is the dominant triad?",["C major","D minor","F major","G major"],3,"G is scale degree 5 in C major, so G major is the V/dominant chord."),
         lessonData(21,"Intermediate","Roman numeral analysis","Roman numerals label chords by scale degree: uppercase means major, lowercase means minor, and a diminished symbol marks diminished quality. In C major, I=C, ii=Dm, iii=Em, IV=F, V=G, vi=Am, vii°=Bdim. Numerals show function across keys.","Roman numeral: key-relative chord label. Upper/lower case: chord quality. °: diminished triad.","1. Identify the key. 2. Number its scale notes. 3. Build a triad on each note. 4. Mark quality with case and symbols.","Analyze C-Am-F-G as I-vi-IV-V in C, then transpose to another key with the same numerals.","A capo can preserve familiar shapes while the sounding key changes; name the concert-key numerals, not just finger shapes.","Compare songs independent of key and transpose arrangements consistently.","Do not use uppercase for every chord; quality is encoded in the numeral's case.","In a major key, what quality is the ii chord?",["Major","Minor","Augmented","Dominant seventh"],1,"The diatonic chord on degree 2 in a major key is a minor triad, written ii."),
-        lessonData(22,"Intermediate","Seventh chords","A seventh chord adds a fourth chord tone, a seventh above the root. Common types include major seventh (1-3-5-7), dominant seventh (1-3-5-b7), minor seventh (1-b3-5-b7), and half-diminished. The added seventh often increases harmonic pull or color.","Dominant seventh: major triad plus minor seventh. Major seventh: major triad plus major seventh.","1. Build a triad. 2. Add the seventh from the scale. 3. Compare b7 and natural 7. 4. Resolve G7 to C.","Play G-B-D-F for G7, then resolve to C-E-G; the F tends downward to E.","A compact G7 voicing is 320001; release the tension into a C shape with minimal finger motion.","Color accompaniment and strengthen dominant-to-tonic movement.","A chord labeled G7 is not G major plus a major seventh; that chord is Gmaj7.","Which added note turns G major into G7?",["F","F-sharp","G","E-flat"],0,"G7 is G-B-D-F: the chord adds a minor seventh, F, above the root."),
+        lessonData(22,"Intermediate","Seventh chords","A seventh chord adds a fourth chord tone, a seventh above the root. Common types include major seventh (1-3-5-7), dominant seventh (1-3-5-b7), minor seventh (1-b3-5-b7), and half-diminished. The added seventh often increases harmonic pull or color.","Dominant seventh: major triad plus minor seventh. Major seventh: major triad plus major seventh.","1. Build a triad. 2. Add the seventh from the scale. 3. Compare the flat seventh with the natural seventh. 4. Resolve G7 to C.","Play G-B-D-F for G7, then resolve to C-E-G; the F tends downward to E.","A compact G7 voicing is 320001; release the tension into a C shape with minimal finger motion.","Color accompaniment and strengthen dominant-to-tonic movement.","A chord labeled G7 is not G major plus a major seventh; that chord is Gmaj7.","Which added note turns G major into G7?",["F","F-sharp","G","E-flat"],0,"G7 is G-B-D-F: the chord adds a minor seventh, F, above the root."),
         lessonData(23,"Intermediate","Suspended chords","A suspended chord replaces the third with a second or fourth, avoiding a clear major/minor quality. Sus2 uses 1-2-5 and sus4 uses 1-4-5. The suspended tone often resolves to the third, but it can also remain as a stable color.","Suspension: a chord tone replacing the third. sus2: root-second-fifth. sus4: root-fourth-fifth.","1. Play a major triad. 2. Replace its third with the second or fourth. 3. Resolve the suspension to the third and compare.","On piano, play D-G-A then move G to F-sharp for D major; try D-E-A as Dsus2.","Asus2 is x02200 and Asus4 is x02230; alternate with A major to hear the suspended note resolve.","Create open, floating textures and embellish a held chord without changing the bass.","Sus chords are not automatically minor; the missing third is what makes quality ambiguous.","Which note replaces the third in a sus4 chord?",["Second","Fourth","Fifth","Seventh"],1,"A sus4 chord replaces the third with scale degree four, which may resolve down to the third."),
-        lessonData(24,"Intermediate","Extended chords","Extensions add notes above a seventh chord: ninth, eleventh, and thirteenth. They are usually understood by stacking thirds and may omit or alter tones for playability and clarity. Extensions add color without necessarily changing a chord's basic function.","Extension: chord tone above the seventh. Altered extension: raised/lowered ninth, fifth, or other color tone.","1. Start with a seventh chord. 2. Continue the scale in thirds to 9, 11, or 13. 3. Choose a voicing that leaves defining tones audible.","Try Cmaj9 as C-E-G-B-D; omit G if needed while retaining the third and seventh.","Use a compact Cadd9 (x32033) for color; remember add9 is not identical to a full C9 dominant chord.","Expand jazz/pop harmony and create richer piano or guitar arrangements.","A 9 chord normally implies a seventh; add9 explicitly adds the ninth to a triad.","What is the ninth in a C-based extended chord?",["D","E","F","A"],0,"D is the ninth above C when the scale is continued past the octave."),
+        lessonData(24,"Intermediate","Extended chords","Extensions add notes above a seventh chord: ninth, eleventh, and thirteenth. They are usually understood by stacking thirds and may omit or alter tones for playability and clarity. Extensions add color without necessarily changing a chord's basic function.","Extension: chord tone above the seventh. Altered extension: raised/lowered ninth, fifth, or other color tone.","1. Start with a seventh chord. 2. Add the ninth, eleventh, or thirteenth above the root. 3. Choose a voicing that leaves defining tones audible.","Try Cmaj9 as C-E-G-B-D; omit G if needed while retaining the third and seventh.","Use a compact Cadd9 (x32033) for color; remember add9 is not identical to a full C9 dominant chord.","Expand jazz/pop harmony and create richer piano or guitar arrangements.","A 9 chord normally implies a seventh; add9 explicitly adds the ninth to a triad.","What is the ninth in a C-based extended chord?",["D","E","F","A"],0,"D is the ninth above C when the scale is continued past the octave."),
         lessonData(25,"Intermediate","Relative major and minor","Relative major and minor share a key signature and pitch collection but have different tonic centers. A relative minor begins on scale degree 6 of its major; a relative major lies a minor third above the minor tonic. Harmony and melody establish which note feels like home.","Relative minor: minor key sharing a major key's signature. Tonic center: perceived point of rest.","1. Write a major scale. 2. Begin on degree 6 for its natural relative minor. 3. Compare cadences to identify each tonic.","C major and A natural minor use the same white keys; end phrases on C or A to make different centers clear.","C major and A minor share open-chord resources; emphasize G-to-C for C or E-to-Am for A minor.","Transpose melodies and understand why a shared signature can support different moods.","A shared key signature does not make two keys identical; tonic and harmonic behavior differ.","What is the relative minor of C major?",["D minor","E minor","A minor","G minor"],2,"A is the sixth degree of C major, so A minor is its relative minor."),
         lessonData(26,"Intermediate","Harmonic minor and melodic minor","Harmonic minor raises the seventh of natural minor to create a leading tone and a major V chord; the resulting augmented second between degrees 6 and 7 is distinctive. Classical melodic minor raises 6 and 7 ascending to smooth the line, then often descends as natural minor; jazz melodic minor keeps raised forms both ways.","Leading tone: semitone below tonic. Augmented second: three-semitone interval in harmonic minor.","1. Play A natural minor. 2. Raise G to G-sharp for harmonic minor. 3. Raise F too while ascending for classical melodic minor. 4. Listen to the different resolutions.","A harmonic minor uses A-B-C-D-E-F-G-sharp-A; E major (E-G-sharp-B) now supplies a strong V.","Play G-sharp on the third fret of the high E string in an A-minor phrase, then resolve it to open A.","Choose a minor-key dominant sound and craft smoother melodic lines.","Raising the seventh changes the scale spelling and chord qualities; do not assume every minor-key V is minor.","What note changes from A natural minor to A harmonic minor?",["F to F-sharp","G to G-sharp","C to C-sharp","E to E-flat"],1,"Harmonic minor raises its seventh degree; in A minor that changes G to G-sharp."),
         lessonData(27,"Advanced","Voice leading","Voice leading is the movement of individual notes from one chord to the next. Good voice leading preserves common tones and moves other voices by the smallest practical interval while maintaining musical direction. Chord labels alone do not describe the smoothness of a progression.","Voice: one melodic line within a chord texture. Common tone: pitch shared by adjacent chords. Contrary motion: voices move in opposite directions.","1. Write the chord tones. 2. Keep shared notes. 3. Move remaining voices to the nearest chord tone. 4. Check range and crossing.","Move from C (C-E-G) to Am (A-C-E): keep C and E, move G to A.","Use C to Am with a shared C and E; select nearby inversions rather than jumping to distant open shapes.","Arrange piano/guitar accompaniment that supports a singer and avoids awkward leaps.","Root-position chords can make a smooth progression sound jumpy when voices leap unnecessarily.","Which voice-leading choice is usually smoothest between two chords?",["Move every voice as far as possible","Keep common tones and move others by small steps","Double every note in unison","Ignore register"],1,"Retaining shared notes and moving other voices minimally creates continuity and clear part-writing."),
@@ -766,37 +771,99 @@
         const box = h("div");
         const completed = () => L.filter((lesson) => S.prog.has(lesson.id)).length;
         const pct = () => Math.round((completed() / L.length) * 100);
-        const menu = () =>
+        const progressCard = () =>
+          h("div", { class: "card theory-progress-card" }, [
+            h("b", {}, completed() + " of " + L.length + " lessons complete"),
+            h("span", { class: "sub theory-percent" }, pct() + "%"),
+            h(
+              "div",
+              { class: "bar" },
+              h("i", { style: "width:" + pct() + "%" }),
+            ),
+          ]);
+        const menu = () => {
           box.replaceChildren(
-            h("div", { class: "card", style: "margin-bottom:1rem" }, [
-              h("b", {}, completed() + " of " + L.length + " lessons complete"),
-              h("span", { class: "sub theory-percent" }, pct() + "%"),
+            progressCard(),
+            h("p", { class: "sub theory-level-prompt" }, "Choose a level to browse its lessons."),
+            h(
+              "div",
+              { class: "theory-level-grid" },
+              ["Beginner", "Intermediate", "Advanced"].map((level) => {
+                const lessons = L.filter((item) => item.level === level);
+                const done = lessons.filter((item) => S.prog.has(item.id)).length;
+                return h(
+                  "button",
+                  {
+                    class: "card theory-level-card",
+                    type: "button",
+                    onclick: () => showLevel(level),
+                  },
+                  [
+                    h("span", { class: "theory-level-tag" }, "Music theory"),
+                    h("b", {}, level),
+                    h("span", { class: "sub" }, lessons.length + " lessons"),
+                    h(
+                      "span",
+                      { class: "theory-level-progress" },
+                      done + " of " + lessons.length + " completed",
+                    ),
+                  ],
+                );
+              }),
+            ),
+          );
+        };
+        const showLevel = (level) => {
+          const lessons = L.filter((item) => item.level === level);
+          box.replaceChildren(
+            h(
+              "button",
+              {
+                class: "btn g sm theory-back",
+                type: "button",
+                onclick: menu,
+              },
+              "All levels",
+            ),
+            h("section", { class: "theory-level" }, [
+              h("h2", {}, level + " lessons"),
               h(
                 "div",
-                { class: "bar" },
-                h("i", { style: "width:" + pct() + "%" }),
+                { class: "grid theory-lesson-grid" },
+                lessons.map((item) => {
+                  const index = L.indexOf(item);
+                  return h(
+                    "button",
+                    {
+                      class: "card theory-lesson-card",
+                      type: "button",
+                      onclick: () => lesson(index),
+                    },
+                    [
+                      h(
+                        "span",
+                        { class: "theory-lesson-number" },
+                        "LESSON " + String(index + 1).padStart(2, "0"),
+                      ),
+                      h("b", {}, item.title),
+                      h(
+                        "span",
+                        { class: "sub" },
+                        S.prog.has(item.id) ? "Completed" : "Not started",
+                      ),
+                    ],
+                  );
+                }),
               ),
             ]),
-            ...["Beginner", "Intermediate", "Advanced"].map((level) => {
-              const lessons = L.filter((item) => item.level === level);
-              return h("section", { class: "theory-level" }, [
-                h("h2", {}, level),
-                h("div", { class: "grid" }, lessons.map((item) => {
-                  const index = L.indexOf(item);
-                  return h("button", {
-                    class: "card opt theory-lesson-card",
-                    onclick: () => lesson(index),
-                  }, [
-                    h("span", { class: "theory-lesson-number" }, String(index + 1).padStart(2, "0")),
-                    h("b", {}, item.title),
-                    h("span", { class: "sub" }, S.prog.has(item.id) ? "Completed" : "Not started"),
-                  ]);
-                })),
-              ]);
-            }),
           );
+        };
         const lesson = (i) => {
           const l = L[i];
+          const levelLessons = L.map((item, index) => ({ item, index })).filter(
+            ({ item }) => item.level === l.level,
+          );
+          const levelIndex = levelLessons.findIndex(({ index }) => index === i);
           let answered = false;
           const feedback = h("div", { class: "theory-feedback", "aria-live": "polite" });
           const quiz = h("div", { class: "card theory-quiz" }, [
@@ -845,8 +912,8 @@
           box.replaceChildren(
             h(
               "button",
-              { class: "btn g sm", onclick: () => shell.go("theory") },
-              "All lessons",
+              { class: "btn g sm", onclick: () => showLevel(l.level) },
+              l.level + " lessons",
             ),
             h("div", { class: "card theory-content" }, [
               h("span", { class: "theory-level-tag" }, l.level),
@@ -854,11 +921,29 @@
               h("p", { class: "theory-explanation" }, l.explanation),
               h("section", { class: "theory-section" }, [
                 h("h2", {}, "Key terms"),
-                h("p", {}, l.terms),
+                h(
+                  "ul",
+                  { class: "theory-terms" },
+                  l.terms
+                    .split(/\.\s+(?=[A-Z][^:]{0,40}:)/)
+                    .map((term, index, terms) =>
+                      h(
+                        "li",
+                        {},
+                        term + (index < terms.length - 1 ? "." : ""),
+                      ),
+                    ),
+                ),
               ]),
               h("section", { class: "theory-section" }, [
                 h("h2", {}, "Step-by-step"),
-                h("p", {}, l.steps),
+                h(
+                  "ol",
+                  { class: "theory-steps" },
+                  l.steps.split(/\s+(?=\d+\.\s)/).map((step) =>
+                    h("li", {}, step.replace(/^\d+\.\s*/, "")),
+                  ),
+                ),
               ]),
               h("div", { class: "theory-example-grid" }, [
                 h("section", { class: "theory-example" }, [
@@ -882,14 +967,14 @@
               h("div", { class: "row theory-pagination" }, [
                 h("button", {
                   class: "btn g",
-                  disabled: i === 0,
-                  onclick: () => lesson(i - 1),
+                  disabled: levelIndex === 0,
+                  onclick: () => lesson(levelLessons[levelIndex - 1].index),
                 }, "Previous lesson"),
-                h("span", { class: "sub" }, (i + 1) + " of " + L.length),
+                h("span", { class: "sub" }, (levelIndex + 1) + " of " + levelLessons.length),
                 h("button", {
                   class: "btn",
-                  disabled: i === L.length - 1,
-                  onclick: () => lesson(i + 1),
+                  disabled: levelIndex === levelLessons.length - 1,
+                  onclick: () => lesson(levelLessons[levelIndex + 1].index),
                 }, "Next lesson"),
               ]),
             ]),

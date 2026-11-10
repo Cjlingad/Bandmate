@@ -960,21 +960,35 @@
         padding-right: 4.5rem;
       }
 
+      .password-field input:not(.password-visible) {
+        font-size: 0.9rem;
+      }
+
       .password-toggle {
         position: absolute;
         top: 50%;
         right: 0.35rem;
         min-width: 48px;
         min-height: 40px;
-        padding: 0.35rem 0.55rem;
+        display: grid;
+        place-items: center;
+        padding: 0.35rem;
         transform: translateY(-50%);
         border: 0;
         border-radius: 8px;
         background: transparent;
         color: var(--ac);
-        font-size: 0.83rem;
-        font-weight: 700;
         cursor: pointer;
+      }
+
+      .password-toggle svg {
+        width: 20px;
+        height: 20px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
       }
 
       .password-toggle:hover {
@@ -1205,13 +1219,51 @@
         opacity: 0.55;
       }
 
+      .theory-progress-card {
+        margin-bottom: 1rem;
+      }
+
+      .theory-level-prompt {
+        margin-bottom: 0.75rem;
+      }
+
+      .theory-level-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .theory-level-card {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.65rem;
+        min-height: 160px;
+        padding: 1.25rem;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .theory-level-card > b {
+        font-size: 1.3rem;
+      }
+
+      .theory-level-progress {
+        color: var(--mu);
+        font-size: 0.84rem;
+      }
+
+      .theory-back {
+        margin-bottom: 0.5rem;
+      }
+
       .theory-level {
-        margin: 1.5rem 0;
+        margin: 0.75rem 0 1.5rem;
       }
 
       .theory-level > h2 {
         margin-bottom: 0.75rem;
-        font-size: 1.25rem;
+        font-size: 1.35rem;
       }
 
       .theory-percent {
@@ -1225,9 +1277,11 @@
         flex-direction: column;
         align-items: flex-start;
         justify-content: center;
-        gap: 0.45rem;
-        min-height: 112px;
+        gap: 0.55rem;
+        min-height: 120px;
         padding: 1rem;
+        text-align: left;
+        cursor: pointer;
       }
 
       .theory-lesson-number {
@@ -1240,10 +1294,11 @@
       .theory-content {
         max-width: 900px;
         margin-top: 1rem;
+        padding: clamp(1.1rem, 3vw, 2rem);
       }
 
       .theory-content > h1 {
-        margin: 0.45rem 0 1rem;
+        margin: 0.55rem 0 1rem;
         font-size: clamp(1.7rem, 3.2vw, 2.2rem);
       }
 
@@ -1261,6 +1316,7 @@
       }
 
       .theory-explanation {
+        margin-bottom: 1.25rem;
         color: #49435a;
         font-size: 1.03rem;
         line-height: 1.75;
@@ -1280,14 +1336,43 @@
       .theory-mistake h2,
       .theory-example h2,
       .theory-quiz h2 {
-        margin-bottom: 0.45rem;
-        font-size: 1rem;
+        margin-bottom: 0.65rem;
+        font-size: 1.05rem;
       }
 
       .theory-section p,
       .theory-mistake p,
       .theory-example p {
         line-height: 1.65;
+      }
+
+      .theory-steps {
+        display: grid;
+        gap: 0.65rem;
+        margin: 0;
+        padding-left: 1.5rem;
+        line-height: 1.65;
+      }
+
+      .theory-steps li {
+        padding-left: 0.25rem;
+      }
+
+      .theory-steps li::marker {
+        color: var(--ac);
+        font-weight: 700;
+      }
+
+      .theory-terms {
+        display: grid;
+        gap: 0.45rem;
+        margin: 0;
+        padding-left: 1.25rem;
+        line-height: 1.65;
+      }
+
+      .theory-terms li::marker {
+        color: var(--ac);
       }
 
       .theory-example-grid {
@@ -1302,7 +1387,7 @@
       }
 
       .theory-quiz {
-        margin-top: 1rem;
+        margin-top: 1.25rem;
         background: #f8f6ff;
       }
 
@@ -1500,6 +1585,10 @@
       }
 
       @media (max-width: 520px) {
+        .theory-level-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
         .theory-example-grid {
           grid-template-columns: minmax(0, 1fr);
           gap: 0;
